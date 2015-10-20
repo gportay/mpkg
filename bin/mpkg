@@ -269,6 +269,7 @@ do_install() {
 		fi
 
 		echo "Installing package $pkg..."
+		requiredby=
 		if ! pkg_install $pkg; then
 			die "Failed to install $pkg!"
 		fi
