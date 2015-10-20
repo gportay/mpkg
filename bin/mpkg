@@ -79,16 +79,16 @@ pkg_extract_data() {
 	tar xzf $1 -C $2 --exclude=${PREFIX#*/} $TAROPTS
 }
 
-run_script() {
-	local pn=$1
+pkg_run_script() {
+	local infodir=$1
 	local script=$2
 	shift
 	shift
 
-	if [ -x $tmpdir$PREFIX/info/$pn.$script ]; then
-		echo -n "$pn: Running $script... "
-		if ! ${FORCE:+true} $tmpdir$PREFIX/info/$pn.$script $*; then
-			echo "failed! ($?)"
+	if [ -x $infodir/$script ]; then
+		echo -n "${infodir##*/}: Running $script... "
+		if ! ${FORCE:+true} $infodir/$script $*; then
+			echo "failed!"
 			return 1
 		fi
 		echo "done"
@@ -189,7 +189,7 @@ pkg_install() {
 	fi
 
 	# Run preinst script if exists
-	if ! run_script $pkg preinst install; then
+	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg preinst install; then
 		echo "$pkg: Failed to run preinst!" >&2
 		return 1
 	fi
@@ -202,7 +202,7 @@ pkg_install() {
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
-	if ! run_script $pkg postinst configure; then
+	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postinst configure; then
 		touch $ROOT$PREFIX/info/$pkg/.configure
 		echo "$pkg: Failed to run postinst!" >&2
 	fi
@@ -297,7 +297,6 @@ EOF
 }
 
 parse_arguments() {
-	FORCE=false
 	REDO=falses
 	while [ $# -ne 0 ]; do
 		if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
