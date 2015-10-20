@@ -72,7 +72,7 @@ fetch() {
 }
 
 pkg_extract_metadata() {
-	tar xzf $1 -C $2 ${PREFIX#*/}
+	tar xzf $1 -C $2           ${PREFIX#*/} $TAROPTS
 }
 
 pkg_extract_data() {
