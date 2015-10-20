@@ -28,9 +28,18 @@ filterout=filterout
 PREFIX=/var/lib/mpkg
 UPDATE=false
 
+cleanup() {
+	$DO_CLEANUP
+}
+
 die() {
 	echo "Error: $*" >&2
 	exit 1
+}
+
+lock() {
+	install -d ${1%/*}
+	touch $1
 }
 
 get_value() {
@@ -323,8 +332,17 @@ parse_arguments() {
 
 parse_arguments $*
 
+lockfile=$ROOT/var/run/mpkg/.lock
 cachedir=$ROOT/var/cache/mpkg
 tmpdir=$ROOT/tmp
+
+if [ -e "$lockfile" ]; then
+	die "Only one single instance should run at a time! "
+fi
+
+lock $lockfile
+DO_CLEANUP="rm -f $lockfile ;"
+trap cleanup 0
 
 case "$func" in
 update)
