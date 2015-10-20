@@ -169,7 +169,7 @@ pkg_install() {
 	pkg_extract_metadata $cachedir/$file $tmpdir
 
 	# Install missing dependencies
-	depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $1 | get_value 'Depends')
+	local depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $pkg | get_value 'Depends')
 	for dep in $depends; do
 		requiredby="$requiredby $pkg"
 		if ! pkg_install $dep; then
