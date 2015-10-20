@@ -199,6 +199,7 @@ pkg_install() {
 	pkg_extract_data $cachedir/$file ${ROOT:-/}
 	install -d $ROOT$PREFIX/info/
 	mv $tmpdir$PREFIX/info/$pkg $ROOT$PREFIX/info/
+	rm $cachedir/$file*
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
