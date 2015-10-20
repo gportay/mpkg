@@ -62,7 +62,7 @@ fetch() {
 	fi
 }
 
-extract_pkgdata() {
+pkg_extract_metadata() {
 	tar xzf $1 -C $2 ${PREFIX#*/}
 }
 
@@ -157,7 +157,7 @@ pkg_install() {
 
 	# Extract package data
 	echo "$pkg: Unarchiving package meta-data..."
-	extract_pkgdata $cachedir/$file $tmpdir
+	pkg_extract_metadata $cachedir/$file $tmpdir
 
 	# Install missing dependencies
 	depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $1 | get_value 'Depends')
