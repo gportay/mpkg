@@ -66,8 +66,8 @@ pkg_extract_metadata() {
 	tar xzf $1 -C $2 ${PREFIX#*/}
 }
 
-unarchive() {
-	tar xzf $1 -C ${ROOT:-/} $TAROPTS
+pkg_extract_data() {
+	tar xzf $1 -C $2 --exclude=${PREFIX#*/} $TAROPTS
 }
 
 run_script() {
@@ -185,9 +185,11 @@ pkg_install() {
 		return 1
 	fi
 
-	# Unarchive whole archive
+	# Extract whole archive
 	echo "$pkg: Unarchiving package data..."
-	unarchive $cachedir/$file
+	pkg_extract_data $cachedir/$file ${ROOT:-/}
+	install -d $ROOT$PREFIX/info/
+	mv $tmpdir$PREFIX/info/$pkg $ROOT$PREFIX/info/
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
