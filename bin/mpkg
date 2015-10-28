@@ -364,7 +364,6 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] fetch PACKAGE...
        ${0##*/} [OPTIONS] install|remove PACKAGE...
 
-
 Options:
  -f or --force         Force.
  -r or --root DIR      To set the root directory.
