@@ -184,7 +184,7 @@ pkg_install() {
 		echo "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
 		todo=${rmdepends%% $dep *}
-		echo "*** TODO: Those packages has been installed and should be removed! ***" >&2
+		echo "*** TODO: Package(s)${rmdepends}has been installed and should be removed! ***" >&2
 		return 1
 	fi
 
