@@ -79,6 +79,16 @@ pkg_extract_data() {
 	tar xzf $1 -C $2 --exclude=${PREFIX#*/} $TAROPTS
 }
 
+pkg_remove_metadata() {
+	rm -r $ROOT$PREFIX/info/$1
+}
+
+pkg_remove_data() {
+	cat $ROOT$PREFIX/info/$1/files 2>/dev/null | while read f; do
+		echo rm -f $f
+	done
+}
+
 pkg_run_script() {
 	local infodir=$1
 	local script=$2
@@ -217,6 +227,47 @@ pkg_install() {
 	echo "$pkg: Package installed!"
 }
 
+pkg_remove() {
+	local pkg=$1
+	if ! pkg_status $pkg >/dev/null; then
+		continue
+	fi
+
+	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
+
+	# Removing auto-installed dependencies
+	local depends=$(pkg_status $pkg | get_pkg $pkg | get_value 'Depends')
+	for dep in $depends; do
+		autoremovedby="$autoremovedby $pkg"
+		if ! pkg_remove $dep; then
+			abort=true
+			break;
+		fi
+		autoremovedby="${autoremovedby% *}"
+	done
+
+	# Run prerm script if exists
+	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg prerm remove; then
+		echo "$pkg: Failed to run prerm!" >&2
+		return 1
+	fi
+
+	# Extract whole archive
+	echo "$pkg: Removing package data..."
+	pkg_remove_data $pkg ${ROOT:-/}
+
+	# Run postrm script if exists,
+	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postrm configure; then
+		echo "$pkg: Failed to run postrm!" >&2
+	fi
+	pkg_remove_metadata $pkg
+
+	# Add the user flag if the package is not required by any other package,
+	# it means it has been installed by the user
+
+	echo "$pkg: Package removed!"
+}
+
 do_update() {
 	install -d $ROOT$PREFIX/lists/
 	sed -e '/^#/d' $ROOT/etc/mpkg/feeds.conf 2>/dev/null | while read name url; do
@@ -277,6 +328,23 @@ do_install() {
 	done
 }
 
+do_remove() {
+	for pkg in $*; do
+		abort=false
+		if ! pkg_status $pkg >/dev/null; then
+			echo "$pkg: Package not installed!"
+			continue
+		fi
+
+		echo "Removing package $pkg..."
+		autoremovedby=
+		if ! pkg_remove $pkg; then
+			die "Failed to remove $pkg!"
+		fi
+		echo "Package $pkg removed!"
+	done
+}
+
 usage() {
 	cat <<EOF
 Usage: ${0##*/} [OPTIONS] update
@@ -314,7 +382,7 @@ parse_arguments() {
 			usage
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -E "update|list-installed|status|fetch|install"; then
+			if echo "$func" | grep -E "update|list-installed|status|fetch|install|remove"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
@@ -387,6 +455,15 @@ install)
 	fi
 
 	do_install $args
+	;;
+remove)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	do_remove $args
 	;;
 *)
 	usage >&2
