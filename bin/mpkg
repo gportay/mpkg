@@ -194,7 +194,13 @@ pkg_install() {
 		echo "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
 		todo=${rmdepends%% $dep *}
-		echo "*** TODO: Package(s)${rmdepends}has been installed and should be removed! ***" >&2
+		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
+		for dep in $rmdepends; do
+			if ! pkg_remove $dep; then
+				echo "Warning: Failed to remove package $dep! Keep going..." >&2
+			fi
+		done
+
 		return 1
 	fi
 
