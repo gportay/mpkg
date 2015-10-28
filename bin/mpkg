@@ -335,15 +335,16 @@ parse_arguments $*
 
 lockfile=$ROOT/var/run/mpkg/.lock
 cachedir=$ROOT/var/cache/mpkg
-tmpdir=$ROOT/tmp
+tmpdir=$(mktemp -d $ROOT/tmp/${0##*/}-XXXXXX 2>/dev/null || echo $ROOT/tmp/${0##*/}-$$)
+DO_CLEANUP="rm -Rf $tmpdir"
+trap cleanup 0
 
 if [ -e "$lockfile" ]; then
 	die "Only one single instance should run at a time! "
 fi
 
+DO_CLEANUP="$DO_CLEANUP ; rm -f $lockfile ;"
 lock $lockfile
-DO_CLEANUP="rm -f $lockfile ;"
-trap cleanup 0
 
 case "$func" in
 update)
