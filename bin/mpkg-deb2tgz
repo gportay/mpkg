@@ -56,6 +56,10 @@ extract_deb() {
 	rm debian-binary
 }
 
+files() {
+	find $1/ -type f | sed -e "s,^$1,," -e "\:^$PREFIX/:d"
+}
+
 package_tgz() {
 	local tgzdir=${1:-.}
 	local pn=$(cat $tgzdir$PREFIX/info/*/control 2>/dev/null | get_value 'Package')
@@ -67,8 +71,13 @@ package_tgz() {
 	pv=${pv:-0}
 	local tgz=${pn}_${pv}.tgz
 
+	files $tgzdir >$tgzdir$PREFIX/info/$pn/files
 	( cd $tgzdir/ && tar czf $OLDPWD/$tgz --exclude=$1 * )
 	echo "$tgz"
+}
+
+do_files() {
+	files ${1:-.}
 }
 
 do_deb2tgz() {
@@ -77,8 +86,12 @@ do_deb2tgz() {
 	install -d $tmpdir/
 	extract_deb $1 $tmpdir
 	if ! $EXTRACT_ONLY; then
-		package_tgz $tmpdir
-		rm -rf $tmpdir/
+		if ! $FILES; then
+			package_tgz $tmpdir
+			rm -rf $tmpdir/
+		else
+			do_list $tmpdir
+		fi
 	fi
 }
 
@@ -89,6 +102,7 @@ Usage: ${0##*/} [OPTIONS] PACKAGE...
 
 Options:
  --extract-only        Extract only.
+ -f or --files         Print list of files.
  -h or --help          Display this message.
  -v or --version       Display the version.
 EOF
@@ -96,10 +110,13 @@ EOF
 
 parse_arguments() {
 	EXTRACT_ONLY=false
+	FILES=false
 
 	while [ $# -ne 0 ]; do
 		if [ "$1" = "--extract-only" ]; then
 			EXTRACT_ONLY=true
+		elif [ "$1" = "-l" ] || [ "$1" = "--files" ]; then
+			FILES=true
 		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
 			exit 0
