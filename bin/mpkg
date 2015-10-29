@@ -398,6 +398,8 @@ parse_arguments() {
 				die "$1: Unknown function!"
 			fi
 			func="$1"
+		elif echo "$func" | grep -qE "fetch|install|remove"; then
+			args="$args $1"
 		elif [ -z "$args" ]; then
 			args="$args $1"
 		else
