@@ -135,7 +135,7 @@ pkg_fetch() {
 	local file=${filename##*/}
 	local url=$(grep -E "^${feed##*/} " $ROOT/etc/mpkg/feeds.conf | cut -d' ' -f2)
 	if [ ! -e $cachedir/$file ]; then
-		if ! fetch $url/$filename $cachedir/$file; then
+		if ! fetch ${url%/*}/$filename $cachedir/$file; then
 			return 1
 		fi
 	fi
@@ -283,7 +283,7 @@ do_update() {
 	install -d $ROOT$PREFIX/lists/
 	sed -e '/^#/d' $ROOT/etc/mpkg/feeds.conf 2>/dev/null | while read name url; do
 		echo -n "Updating feed $name at $url... "
-		fetch $url/Packages $ROOT$PREFIX/lists/$name
+		fetch $url $ROOT$PREFIX/lists/$name
 		md5sum $ROOT$PREFIX/lists/local | cut -d' ' -f1
 	done
 }
