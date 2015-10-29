@@ -35,6 +35,10 @@ get_value() {
 	sed -n "/$1:/s,.*: *,,p"
 }
 
+files() {
+	find $1/ -type f | sed -e "s,^$1,," -e "\:^$PREFIX/:d"
+}
+
 package_tgz() {
 	local tgzdir=${1:-.}
 	local pn=$(cat $tgzdir$PREFIX/info/*/control 2>/dev/null | get_value 'Package')
@@ -46,8 +50,13 @@ package_tgz() {
 	pv=${pv:-0}
 	local tgz=${pn}_${pv}.tgz
 
+	files $tgzdir >$tgzdir$PREFIX/info/$pn/files
 	( cd $tgzdir/ && tar czf $OLDPWD/$tgz --exclude=$1 * )
 	echo "$tgz"
+}
+
+do_files() {
+	files ${1:-.}
 }
 
 usage() {
@@ -56,14 +65,19 @@ Usage: ${0##*/} [OPTIONS] PACKAGE...
        ${0##*/} [OPTIONS] DIRECTORY...
 
 Options:
+ -f or --files         Print list of files.
  -h or --help          Display this message.
  -v or --version       Display the version.
 EOF
 }
 
 parse_arguments() {
+	FILES=false
+
 	while [ $# -ne 0 ]; do
-		if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+		if [ "$1" = "-l" ] || [ "$1" = "--files" ]; then
+			FILES=true
+		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
 			exit 0
 		elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
@@ -89,5 +103,9 @@ for arg in $args; do
 		die "$arg: No such directory!"
 	fi
 
-	package_tgz $arg
+	if $FILES; then
+		do_files $arg
+	else
+		package_tgz $arg
+	fi
 done

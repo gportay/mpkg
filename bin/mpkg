@@ -1,0 +1,486 @@
+#!/bin/sh -e
+#
+# The MIT License (MIT)
+#
+# Copyright (c) 2015 Gaël PORTAY <gael.portay@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+filterout=filterout
+
+PREFIX=/var/lib/mpkg
+UPDATE=false
+
+cleanup() {
+	$DO_CLEANUP
+}
+
+die() {
+	echo "Error: $*" >&2
+	exit 1
+}
+
+lock() {
+	install -d ${1%/*}
+	touch $1
+}
+
+get_value() {
+	sed -n "/$1:/s#.*: *##p"
+}
+
+get_pkg() {
+	sed -n -e "/Package: $1$/,/^\$/p"
+}
+
+get_depends() {
+	local depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $1 | get_value 'Depends')
+	local pkg=
+	for pkg in $depends; do
+		get_depends $pkg
+		echo $pkg
+	done
+}
+
+download() {
+	wget -qO- $1 $WGETOPTS
+}
+
+fetch() {
+	if echo "$1" | grep -qE '^file://'; then
+		cp ${1##*://} $2
+	else
+		download $1 >$2
+	fi
+}
+
+pkg_extract_metadata() {
+	tar xzf $1 -C $2           ${PREFIX#*/} $TAROPTS
+}
+
+pkg_extract_data() {
+	tar xzf $1 -C $2 --exclude=${PREFIX#*/} $TAROPTS
+}
+
+pkg_remove_metadata() {
+	rm -r $ROOT$PREFIX/info/$1
+}
+
+pkg_remove_data() {
+	cat $ROOT$PREFIX/info/$1/files 2>/dev/null | while read f; do
+		echo rm -f $f
+	done
+}
+
+pkg_run_script() {
+	local infodir=$1
+	local script=$2
+	shift
+	shift
+
+	if [ -x $infodir/$script ]; then
+		echo -n "${infodir##*/}: Running $script... "
+		if ! ${FORCE:+true} $infodir/$script $*; then
+			echo "failed!"
+			return 1
+		fi
+		echo "done"
+	fi
+}
+
+pkg_status() {
+	cat $ROOT$PREFIX/info/$1/control 2>/dev/null
+}
+
+pkg_fetch() {
+	local pkg=$1
+	local destdir=$2
+
+	# Find which feed provides package
+	local filename=
+	for feed in $ROOT$PREFIX/lists/*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		filename=$(cat $feed | get_pkg "$pkg" | get_value "Filename")
+		if [ -n "$filename" ]; then
+			break
+		fi
+	done
+
+	if [ -z "$filename" ]; then
+		echo "$pkg: Cannot find package in feeds!" >&2
+		return 1
+	fi
+
+	# Fetch package
+	local file=${filename##*/}
+	local url=$(grep -E "^${feed##*/} " $ROOT/etc/mpkg/feeds.conf | cut -d' ' -f2)
+	if [ ! -e $cachedir/$file ]; then
+		if ! fetch ${url%/*}/$filename $cachedir/$file; then
+			return 1
+		fi
+	fi
+
+	# Check package
+	local md5=$(cat $feed | get_pkg "$pkg" | get_value "MD5Sum")
+	echo "$md5  $file" >$cachedir/$file.md5
+	if [ -e $cachedir/$file ]; then
+		if ( cd $cachedir/ && ! md5sum --quiet --check $file.md5 ); then
+			echo -n "$pkg: Mismatch MD5! " >&2
+			md5sum $cachedir/$file | cut -d' ' -f1 >&2
+			rm -f $cachedir/$file
+			return 1
+		fi
+	fi
+
+	if [ -n "$destdir" ] && [ "$destdir" != "$cachedir" ]; then
+		mv $cachedir/$file $cachedir/$file.md5 $destdir
+	fi
+
+	echo $file
+}
+
+pkg_install() {
+	local pkg=$1
+	if pkg_status $pkg; then
+		continue
+	fi
+
+	echo "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+
+	# Fetching package
+	echo "$pkg: Fetching package..."
+	local file=$(pkg_fetch $pkg $cachedir)
+	if [ -z "$file" ]; then
+		return 1
+	fi
+
+	# Extract package data
+	echo "$pkg: Unarchiving package meta-data..."
+	pkg_extract_metadata $cachedir/$file $tmpdir
+
+	# Install missing dependencies
+	local depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $pkg | get_value 'Depends')
+	for dep in $depends; do
+		requiredby="$requiredby $pkg"
+		if ! pkg_install $dep; then
+			abort=true
+			break;
+		fi
+		requiredby="${requiredby% *}"
+	done
+
+	# Installation abort by a dependency
+	if $abort; then
+		echo "$pkg: Installation abort due to $dep!"
+		rmdepends=" $depends "
+		todo=${rmdepends%% $dep *}
+		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
+		for dep in $rmdepends; do
+			if [ -e $ROOT$PREFIX/info/$dep/.user ]; then
+				echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
+				continue
+			fi
+
+			if ! pkg_remove $dep; then
+				echo "Warning: Failed to remove package $dep! Keep going..." >&2
+			fi
+		done
+
+		return 1
+	fi
+
+	# Run preinst script if exists
+	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg preinst install; then
+		echo "$pkg: Failed to run preinst!" >&2
+		return 1
+	fi
+
+	# Extract whole archive
+	echo "$pkg: Unarchiving package data..."
+	pkg_extract_data $cachedir/$file ${ROOT:-/}
+	install -d $ROOT$PREFIX/info/
+	mv $tmpdir$PREFIX/info/$pkg $ROOT$PREFIX/info/
+	rm $cachedir/$file*
+
+	# Run postinst script if exists,
+	# and add the configure flag if the script fails
+	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postinst configure; then
+		touch $ROOT$PREFIX/info/$pkg/.configure
+		echo "$pkg: Failed to run postinst!" >&2
+	fi
+
+	# Add the user flag if the package is not required by any other package,
+	# it means it has been installed by the user
+	if [ -z "$requiredby" ]; then
+		touch $ROOT$PREFIX/info/$pkg/.user
+	fi
+
+	echo "$pkg: Package installed!"
+}
+
+pkg_remove() {
+	local pkg=$1
+	if ! pkg_status $pkg >/dev/null; then
+		continue
+	fi
+
+	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
+
+	# Removing auto-installed dependencies
+	local depends=$(pkg_status $pkg | get_pkg $pkg | get_value 'Depends')
+	for dep in $depends; do
+		autoremovedby="$autoremovedby $pkg"
+		if ! pkg_remove $dep; then
+			abort=true
+			break;
+		fi
+		autoremovedby="${autoremovedby% *}"
+	done
+
+	# Run prerm script if exists
+	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg prerm remove; then
+		echo "$pkg: Failed to run prerm!" >&2
+		return 1
+	fi
+
+	# Extract whole archive
+	echo "$pkg: Removing package data..."
+	pkg_remove_data $pkg ${ROOT:-/}
+
+	# Run postrm script if exists,
+	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postrm configure; then
+		echo "$pkg: Failed to run postrm!" >&2
+	fi
+	pkg_remove_metadata $pkg
+
+	# Add the user flag if the package is not required by any other package,
+	# it means it has been installed by the user
+
+	echo "$pkg: Package removed!"
+}
+
+do_update() {
+	install -d $ROOT$PREFIX/lists/
+	sed -e '/^#/d' $ROOT/etc/mpkg/feeds.conf 2>/dev/null | while read name url; do
+		echo -n "Updating feed $name at $url... "
+		fetch $url $ROOT$PREFIX/lists/$name
+		md5sum $ROOT$PREFIX/lists/local | cut -d' ' -f1
+	done
+}
+
+do_list_installed() {
+	for ctrl in $ROOT$PREFIX/info/*/control; do
+		if [ ! -f "$ctrl" ]; then
+			break
+		fi
+
+		cat $ctrl
+		if [ -f "${ctrl%/*}/.user" ]; then
+			echo "User-Installed: yes"
+		fi
+		if [ -f "${ctrl%/*}/.configure" ]; then
+			echo "Configure-Required: yes"
+		fi
+		echo ""
+	done
+}
+
+do_status() {
+	for pkg in $*; do
+		if pkg_status $pkg; then
+			echo
+		fi
+	done
+}
+
+do_fetch() {
+	for pkg in $*; do
+		echo "Fetching package $pkg..."
+		pkg_fetch $pkg ./
+	done
+}
+
+do_install() {
+	install -d $cachedir/
+	install -d $tmpdir$PREFIX/
+	for pkg in $*; do
+		abort=false
+		if pkg_status $pkg >/dev/null; then
+			echo "$pkg: Package already installed!"
+			continue
+		fi
+
+		echo "Installing package $pkg..."
+		requiredby=
+		if ! pkg_install $pkg; then
+			die "Failed to install $pkg!"
+		fi
+		echo "Package $pkg installed!"
+	done
+}
+
+do_remove() {
+	for pkg in $*; do
+		abort=false
+		if ! pkg_status $pkg >/dev/null; then
+			echo "$pkg: Package not installed!"
+			continue
+		fi
+
+		echo "Removing package $pkg..."
+		autoremovedby=
+		if ! pkg_remove $pkg; then
+			die "Failed to remove $pkg!"
+		fi
+		echo "Package $pkg removed!"
+	done
+}
+
+usage() {
+	cat <<EOF
+Usage: ${0##*/} [OPTIONS] update
+       ${0##*/} [OPTIONS] list-installed
+       ${0##*/} [OPTIONS] status PACKAGE...
+       ${0##*/} [OPTIONS] fetch PACKAGE...
+       ${0##*/} [OPTIONS] install|remove PACKAGE...
+
+Options:
+ -f or --force         Force.
+ -r or --root DIR      To set the root directory.
+ --redo                Redo. [TODO]
+ -h or --help          Display this message.
+ -v or --version       Display the version.
+
+Options for install:
+ -u or --update        To update index first.
+EOF
+}
+
+parse_arguments() {
+	UPDATE=false
+	while [ $# -ne 0 ]; do
+		if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
+			FORCE=true
+		elif [ "$1" = "-r" ] || [ "$1" = "--root" ]; then
+			shift
+			ROOT="$1"
+		elif [ "$1" = "--redo" ]; then
+			REDO=true
+		elif [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
+			UPDATE=true
+		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+			usage
+			exit 0
+		elif [ -z "$func" ]; then
+			if echo "$func" | grep -qE "update|list-installed|status|fetch|install|remove"; then
+				usage >&2
+				echo  >&2
+				die "$1: Unknown function!"
+			fi
+			func="$1"
+		elif echo "$func" | grep -qE "fetch|install|remove"; then
+			args="$args $1"
+		elif [ -z "$args" ]; then
+			args="$args $1"
+		else
+			usage >&2
+			echo  >&2
+			die "Too many arguments!"
+		fi
+		shift
+	done
+}
+
+parse_arguments $*
+
+lockfile=$ROOT/var/run/mpkg/.lock
+cachedir=$ROOT/var/cache/mpkg
+tmpdir=$(mktemp -d $ROOT/tmp/${0##*/}-XXXXXX 2>/dev/null || echo $ROOT/tmp/${0##*/}-$$)
+DO_CLEANUP="rm -Rf $tmpdir"
+trap cleanup 0
+
+if [ -e "$lockfile" ]; then
+	die "Only one single instance should run at a time! "
+fi
+
+DO_CLEANUP="$DO_CLEANUP ; rm -f $lockfile ;"
+lock $lockfile
+
+case "$func" in
+update)
+	do_update
+	;;
+list-installed)
+	do_list_installed
+	;;
+fetch)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	if $UPDATE; then
+		do_update
+	fi
+
+	do_fetch $args
+	;;
+status)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	do_status $args
+	;;
+install)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	if $UPDATE; then
+		do_update
+	fi
+
+	do_install $args
+	;;
+remove)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	do_remove $args
+	;;
+*)
+	usage >&2
+	echo  >&2
+
+	die "Too few arguments!"
+	;;
+esac
