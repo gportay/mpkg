@@ -392,7 +392,7 @@ parse_arguments() {
 			usage
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -E "update|list-installed|status|fetch|install|remove"; then
+			if echo "$func" | grep -qE "update|list-installed|status|fetch|install|remove"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
