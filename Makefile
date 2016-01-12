@@ -178,8 +178,10 @@ release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 
 .PHONY:: root
 
-root/etc/mpkg/repo.d/local:
-	install -d $(@D)/
+root/etc/mpkg/repo.d:
+	install -d $@
+
+root/etc/mpkg/repo.d/local: | root/etc/mpkg/repo.d
 	echo "file://$(PWD)/tgz/Index" >$@
 
 root: root/etc/mpkg/repo.d/local
@@ -187,6 +189,10 @@ root: root/etc/mpkg/repo.d/local
 shellcheck:
 	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 	shellcheck bin/mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
+
+.PHONY:: tests
+tests:
+	cd tests && ./run.sh
 
 clean:
 	rm -rf tgz/ root/
