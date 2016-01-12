@@ -49,8 +49,10 @@ get_pkg() {
 }
 
 get_depends() {
-	local depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$1" | get_value 'Depends')
-	local pkg=
+	local depends
+	local pkg
+	depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$1" | get_value 'Depends')
+	pkg=
 	for pkg in $depends; do
 		get_depends "$pkg"
 		echo "$pkg"
@@ -88,8 +90,10 @@ pkg_remove_data() {
 }
 
 pkg_run_script() {
-	local infodir=$1
-	local script=$2
+	local infodir
+	local script
+	infodir=$1
+	script=$2
 	shift
 	shift
 
@@ -108,8 +112,10 @@ pkg_status() {
 }
 
 pkg_fetch() {
-	local pkg=$1
-	local destdir=$2
+	local pkg
+	local destdir
+	pkg=$1
+	destdir=$2
 
 	# Find which feed provides package
 	local filename=
@@ -130,8 +136,10 @@ pkg_fetch() {
 	fi
 
 	# Fetch package
-	local file=${filename##*/}
-	local url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	local file
+	local url
+	file=${filename##*/}
+	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
 	if [ ! -e "$cachedir/$file" ]; then
 		if ! fetch "${url%/*}/$filename" "$cachedir/$file"; then
 			return 1
@@ -139,7 +147,8 @@ pkg_fetch() {
 	fi
 
 	# Check package
-	local md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum")
+	local md5
+	md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum")
 	echo "$md5  $file" >"$cachedir/$file.md5"
 	if [ -e "$cachedir/$file" ]; then
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
@@ -158,7 +167,8 @@ pkg_fetch() {
 }
 
 pkg_install() {
-	local pkg=$1
+	local pkg
+	pkg=$1
 	if pkg_status "$pkg"; then
 		return
 	fi
@@ -167,7 +177,8 @@ pkg_install() {
 
 	# Fetching package
 	echo "$pkg: Fetching package..."
-	local file=$(pkg_fetch "$pkg" "$cachedir")
+	local file
+	file=$(pkg_fetch "$pkg" "$cachedir")
 	if [ -z "$file" ]; then
 		return 1
 	fi
@@ -177,7 +188,8 @@ pkg_install() {
 	pkg_extract_metadata "$cachedir/$file" "$tmpdir"
 
 	# Install missing dependencies
-	local depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$pkg" | get_value 'Depends')
+	local depends
+	depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$pkg" | get_value 'Depends')
 	for dep in $depends; do
 		requiredby="$requiredby $pkg"
 		if ! pkg_install "$dep"; then
@@ -236,7 +248,8 @@ pkg_install() {
 }
 
 pkg_remove() {
-	local pkg=$1
+	local pkg
+	pkg=$1
 	if ! pkg_status "$pkg" >/dev/null; then
 		return
 	fi
@@ -244,7 +257,8 @@ pkg_remove() {
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
 
 	# Removing auto-installed dependencies
-	local depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
+	local depends
+	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if ! pkg_remove "$dep"; then

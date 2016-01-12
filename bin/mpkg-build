@@ -40,15 +40,19 @@ files() {
 }
 
 package_tgz() {
-	local tgzdir=${1:-.}
-	local pn=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Package')
+	local tgzdir
+	local pn
+	tgzdir=${1:-.}
+	pn=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Package')
 	if [ -z "$pn" ]; then
 		die "$1: Invalid directory!"
 	fi
 
-	local pv=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Version')
+	local pv
+	pv=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Version')
 	pv=${pv:-0}
-	local tgz=${pn}_${pv}.tgz
+	local tgz
+	tgz=${pn}_${pv}.tgz
 
 	files "$tgzdir" >"$tgzdir$PREFIX/info/$pn/files"
 	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" * )
