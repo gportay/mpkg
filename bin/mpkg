@@ -160,7 +160,7 @@ pkg_fetch() {
 pkg_install() {
 	local pkg=$1
 	if pkg_status $pkg; then
-		continue
+		return
 	fi
 
 	echo "$pkg: Installing package${requiredby:+ required by$requiredby}..."
@@ -238,7 +238,7 @@ pkg_install() {
 pkg_remove() {
 	local pkg=$1
 	if ! pkg_status $pkg >/dev/null; then
-		continue
+		return
 	fi
 
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
