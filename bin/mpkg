@@ -191,7 +191,6 @@ pkg_install() {
 	if $abort; then
 		echo "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
-		todo=${rmdepends%% $dep *}
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
 		for dep in $rmdepends; do
 			if [ -e $ROOT$PREFIX/info/$dep/.user ]; then
