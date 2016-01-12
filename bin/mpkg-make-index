@@ -30,15 +30,15 @@ control() {
 	local pn=${1##*/}
 	pn=${pn%.*}
 
-	tar Oxzf $1 ${PREFIX#*/}/info/$pn/control 2>/dev/null ||
-	tar Oxzf $1 ${PREFIX#*/}/info/${pn%_*}/control
-	echo -n "Size: " && stat -c %s $tgz
-	echo -n "MD5Sum: " && md5sum $tgz | cut -d' ' -f1
+	tar Oxzf "$1" "${PREFIX#*/}/info/$pn/control" 2>/dev/null ||
+	tar Oxzf "$1" "${PREFIX#*/}/info/${pn%_*}/control"
+	echo -n "Size: " && stat -c %s "$tgz"
+	echo -n "MD5Sum: " && md5sum "$tgz" | cut -d' ' -f1
 	echo -n "Filename: " && echo "$tgz"
 	echo ""
 }
 
 for tgz in ${1:-./}*.tgz; do
-	control $tgz | sed -e '/^$/d'
+	control "$tgz" | sed -e '/^$/d'
 	echo ""
 done

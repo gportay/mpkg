@@ -36,8 +36,8 @@ die() {
 }
 
 lock() {
-	install -d ${1%/*}
-	touch $1
+	install -d "${1%/*}/"
+	touch "$1"
 }
 
 get_value() {
@@ -49,41 +49,41 @@ get_pkg() {
 }
 
 get_depends() {
-	local depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $1 | get_value 'Depends')
+	local depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$1" | get_value 'Depends')
 	local pkg=
 	for pkg in $depends; do
-		get_depends $pkg
-		echo $pkg
+		get_depends "$pkg"
+		echo "$pkg"
 	done
 }
 
 download() {
-	wget -qO- $1 $WGETOPTS
+	wget -qO- "$1" $WGETOPTS
 }
 
 fetch() {
 	if echo "$1" | grep -qE '^file://'; then
-		cp ${1##*://} $2
+		cp "${1##*://}" "$2"
 	else
-		download $1 >$2
+		download "$1" >"$2"
 	fi
 }
 
 pkg_extract_metadata() {
-	tar xzf $1 -C $2           ${PREFIX#*/} $TAROPTS
+	tar xzf "$1" -C "$2"           ${PREFIX#*/} $TAROPTS
 }
 
 pkg_extract_data() {
-	tar xzf $1 -C $2 --exclude=${PREFIX#*/} $TAROPTS
+	tar xzf "$1" -C "$2" --exclude=${PREFIX#*/} $TAROPTS
 }
 
 pkg_remove_metadata() {
-	rm -r $ROOT$PREFIX/info/$1
+	rm -r "$ROOT$PREFIX/info/$1"
 }
 
 pkg_remove_data() {
-	cat $ROOT$PREFIX/info/$1/files 2>/dev/null | while read f; do
-		echo rm -f $f
+	cat "$ROOT$PREFIX/info/$1/files" 2>/dev/null | while read f; do
+		echo rm -f "$f"
 	done
 }
 
@@ -93,9 +93,9 @@ pkg_run_script() {
 	shift
 	shift
 
-	if [ -x $infodir/$script ]; then
+	if [ -x "$infodir/$script" ]; then
 		echo -n "${infodir##*/}: Running $script... "
-		if ! ${FORCE:+true} $infodir/$script $*; then
+		if ! ${FORCE:+true} "$infodir/$script" $*; then
 			echo "failed!"
 			return 1
 		fi
@@ -104,7 +104,7 @@ pkg_run_script() {
 }
 
 pkg_status() {
-	cat $ROOT$PREFIX/info/$1/control 2>/dev/null
+	cat "$ROOT$PREFIX/info/$1/control" 2>/dev/null
 }
 
 pkg_fetch() {
@@ -113,12 +113,12 @@ pkg_fetch() {
 
 	# Find which feed provides package
 	local filename=
-	for feed in $ROOT$PREFIX/lists/*; do
+	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
 		fi
 
-		filename=$(cat $feed | get_pkg "$pkg" | get_value "Filename")
+		filename=$(cat "$feed" | get_pkg "$pkg" | get_value "Filename")
 		if [ -n "$filename" ]; then
 			break
 		fi
@@ -131,35 +131,35 @@ pkg_fetch() {
 
 	# Fetch package
 	local file=${filename##*/}
-	local url=$(grep -E "^${feed##*/} " $ROOT/etc/mpkg/feeds.conf | cut -d' ' -f2)
-	if [ ! -e $cachedir/$file ]; then
-		if ! fetch ${url%/*}/$filename $cachedir/$file; then
+	local url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	if [ ! -e "$cachedir/$file" ]; then
+		if ! fetch "${url%/*}/$filename" "$cachedir/$file"; then
 			return 1
 		fi
 	fi
 
 	# Check package
-	local md5=$(cat $feed | get_pkg "$pkg" | get_value "MD5Sum")
-	echo "$md5  $file" >$cachedir/$file.md5
-	if [ -e $cachedir/$file ]; then
-		if ( cd $cachedir/ && ! md5sum --quiet --check $file.md5 ); then
+	local md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum")
+	echo "$md5  $file" >"$cachedir/$file.md5"
+	if [ -e "$cachedir/$file" ]; then
+		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
 			echo -n "$pkg: Mismatch MD5! " >&2
-			md5sum $cachedir/$file | cut -d' ' -f1 >&2
-			rm -f $cachedir/$file
+			md5sum "$cachedir/$file" | cut -d' ' -f1 >&2
+			rm -f "$cachedir/$file"
 			return 1
 		fi
 	fi
 
 	if [ -n "$destdir" ] && [ "$destdir" != "$cachedir" ]; then
-		mv $cachedir/$file $cachedir/$file.md5 $destdir
+		mv "$cachedir/$file" "$cachedir/$file.md5" "$destdir"
 	fi
 
-	echo $file
+	echo "$file"
 }
 
 pkg_install() {
 	local pkg=$1
-	if pkg_status $pkg; then
+	if pkg_status "$pkg"; then
 		return
 	fi
 
@@ -167,20 +167,20 @@ pkg_install() {
 
 	# Fetching package
 	echo "$pkg: Fetching package..."
-	local file=$(pkg_fetch $pkg $cachedir)
+	local file=$(pkg_fetch "$pkg" "$cachedir")
 	if [ -z "$file" ]; then
 		return 1
 	fi
 
 	# Extract package data
 	echo "$pkg: Unarchiving package meta-data..."
-	pkg_extract_metadata $cachedir/$file $tmpdir
+	pkg_extract_metadata "$cachedir/$file" "$tmpdir"
 
 	# Install missing dependencies
-	local depends=$(cat $ROOT$PREFIX/lists/* 2>/dev/null | get_pkg $pkg | get_value 'Depends')
+	local depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$pkg" | get_value 'Depends')
 	for dep in $depends; do
 		requiredby="$requiredby $pkg"
-		if ! pkg_install $dep; then
+		if ! pkg_install "$dep"; then
 			abort=true
 			break;
 		fi
@@ -193,12 +193,12 @@ pkg_install() {
 		rmdepends=" $depends "
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
 		for dep in $rmdepends; do
-			if [ -e $ROOT$PREFIX/info/$dep/.user ]; then
+			if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
 				echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
 				continue
 			fi
 
-			if ! pkg_remove $dep; then
+			if ! pkg_remove "$dep"; then
 				echo "Warning: Failed to remove package $dep! Keep going..." >&2
 			fi
 		done
@@ -207,29 +207,29 @@ pkg_install() {
 	fi
 
 	# Run preinst script if exists
-	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg preinst install; then
+	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
 		echo "$pkg: Failed to run preinst!" >&2
 		return 1
 	fi
 
 	# Extract whole archive
 	echo "$pkg: Unarchiving package data..."
-	pkg_extract_data $cachedir/$file ${ROOT:-/}
-	install -d $ROOT$PREFIX/info/
-	mv $tmpdir$PREFIX/info/$pkg $ROOT$PREFIX/info/
-	rm $cachedir/$file*
+	pkg_extract_data "$cachedir/$file" "${ROOT:-/}"
+	install -d "$ROOT$PREFIX/info/"
+	mv "$tmpdir$PREFIX/info/$pkg" "$ROOT$PREFIX/info/"
+	rm "$cachedir/$file"*
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
-	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postinst configure; then
-		touch $ROOT$PREFIX/info/$pkg/.configure
+	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postinst configure; then
+		touch "$ROOT$PREFIX/info/$pkg/.configure"
 		echo "$pkg: Failed to run postinst!" >&2
 	fi
 
 	# Add the user flag if the package is not required by any other package,
 	# it means it has been installed by the user
 	if [ -z "$requiredby" ]; then
-		touch $ROOT$PREFIX/info/$pkg/.user
+		touch "$ROOT$PREFIX/info/$pkg/.user"
 	fi
 
 	echo "$pkg: Package installed!"
@@ -237,17 +237,17 @@ pkg_install() {
 
 pkg_remove() {
 	local pkg=$1
-	if ! pkg_status $pkg >/dev/null; then
+	if ! pkg_status "$pkg" >/dev/null; then
 		return
 	fi
 
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
 
 	# Removing auto-installed dependencies
-	local depends=$(pkg_status $pkg | get_pkg $pkg | get_value 'Depends')
+	local depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
-		if ! pkg_remove $dep; then
+		if ! pkg_remove "$dep"; then
 			abort=true
 			break;
 		fi
@@ -255,20 +255,20 @@ pkg_remove() {
 	done
 
 	# Run prerm script if exists
-	if ! pkg_run_script $tmpdir$PREFIX/info/$pkg prerm remove; then
+	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" prerm remove; then
 		echo "$pkg: Failed to run prerm!" >&2
 		return 1
 	fi
 
 	# Extract whole archive
 	echo "$pkg: Removing package data..."
-	pkg_remove_data $pkg ${ROOT:-/}
+	pkg_remove_data "$pkg" "${ROOT:-/}"
 
 	# Run postrm script if exists,
-	if ! pkg_run_script $ROOT$PREFIX/info/$pkg postrm configure; then
+	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm configure; then
 		echo "$pkg: Failed to run postrm!" >&2
 	fi
-	pkg_remove_metadata $pkg
+	pkg_remove_metadata "$pkg"
 
 	# Add the user flag if the package is not required by any other package,
 	# it means it has been installed by the user
@@ -277,11 +277,11 @@ pkg_remove() {
 }
 
 do_update() {
-	install -d $ROOT$PREFIX/lists/
-	sed -e '/^#/d' $ROOT/etc/mpkg/feeds.conf 2>/dev/null | while read name url; do
+	install -d "$ROOT$PREFIX/lists/"
+	sed -e '/^#/d' "$ROOT/etc/mpkg/feeds.conf" 2>/dev/null | while read name url; do
 		echo -n "Updating feed $name at $url... "
-		fetch $url $ROOT$PREFIX/lists/$name
-		md5sum $ROOT$PREFIX/lists/local | cut -d' ' -f1
+		fetch "$url" "$ROOT$PREFIX/lists/$name"
+		md5sum "$ROOT$PREFIX/lists/local" | cut -d' ' -f1
 	done
 }
 
@@ -291,7 +291,7 @@ do_list_installed() {
 			break
 		fi
 
-		cat $ctrl
+		cat "$ctrl"
 		if [ -f "${ctrl%/*}/.user" ]; then
 			echo "User-Installed: yes"
 		fi
@@ -304,7 +304,7 @@ do_list_installed() {
 
 do_status() {
 	for pkg in $*; do
-		if pkg_status $pkg; then
+		if pkg_status "$pkg"; then
 			echo
 		fi
 	done
@@ -313,23 +313,23 @@ do_status() {
 do_fetch() {
 	for pkg in $*; do
 		echo "Fetching package $pkg..."
-		pkg_fetch $pkg ./
+		pkg_fetch "$pkg" ./
 	done
 }
 
 do_install() {
-	install -d $cachedir/
-	install -d $tmpdir$PREFIX/
+	install -d "$cachedir/"
+	install -d "$tmpdir$PREFIX/"
 	for pkg in $*; do
 		abort=false
-		if pkg_status $pkg >/dev/null; then
+		if pkg_status "$pkg" >/dev/null; then
 			echo "$pkg: Package already installed!"
 			continue
 		fi
 
 		echo "Installing package $pkg..."
 		requiredby=
-		if ! pkg_install $pkg; then
+		if ! pkg_install "$pkg"; then
 			die "Failed to install $pkg!"
 		fi
 		echo "Package $pkg installed!"
@@ -339,14 +339,14 @@ do_install() {
 do_remove() {
 	for pkg in $*; do
 		abort=false
-		if ! pkg_status $pkg >/dev/null; then
+		if ! pkg_status "$pkg" >/dev/null; then
 			echo "$pkg: Package not installed!"
 			continue
 		fi
 
 		echo "Removing package $pkg..."
 		autoremovedby=
-		if ! pkg_remove $pkg; then
+		if ! pkg_remove "$pkg"; then
 			die "Failed to remove $pkg!"
 		fi
 		echo "Package $pkg removed!"
@@ -412,7 +412,7 @@ parse_arguments $*
 
 lockfile=$ROOT/var/run/mpkg/.lock
 cachedir=$ROOT/var/cache/mpkg
-tmpdir=$(mktemp -d $ROOT/tmp/${0##*/}-XXXXXX 2>/dev/null || echo $ROOT/tmp/${0##*/}-$$)
+tmpdir=$(mktemp -d "$ROOT/tmp/${0##*/}-XXXXXX" 2>/dev/null || echo "$ROOT/tmp/${0##*/}-$$")
 DO_CLEANUP="rm -Rf $tmpdir"
 trap cleanup 0
 
@@ -421,7 +421,7 @@ if [ -e "$lockfile" ]; then
 fi
 
 DO_CLEANUP="$DO_CLEANUP ; rm -f $lockfile ;"
-lock $lockfile
+lock "$lockfile"
 
 case "$func" in
 update)
