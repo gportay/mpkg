@@ -23,8 +23,6 @@
 # SOFTWARE.
 #
 
-filterout=filterout
-
 PREFIX=/var/lib/mpkg
 UPDATE=false
 
