@@ -124,7 +124,7 @@ pkg_fetch() {
 			break
 		fi
 
-		filename=$(cat "$feed" | get_pkg "$pkg" | get_value "Filename")
+		filename=$(cat "$feed" | get_pkg "$pkg" | get_value "Filename" | tail -n1)
 		if [ -n "$filename" ]; then
 			break
 		fi
@@ -148,7 +148,7 @@ pkg_fetch() {
 
 	# Check package
 	local md5
-	md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum")
+	md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum" | tail -n1)
 	echo "$md5  $file" >"$cachedir/$file.md5"
 	if [ -e "$cachedir/$file" ]; then
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
@@ -189,7 +189,7 @@ pkg_install() {
 
 	# Install missing dependencies
 	local depends
-	depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$pkg" | get_value 'Depends')
+	depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$pkg" | get_value 'Depends' | tail -n1)
 	for dep in $depends; do
 		requiredby="$requiredby $pkg"
 		if ! pkg_install "$dep"; then
@@ -258,7 +258,7 @@ pkg_remove() {
 
 	# Removing auto-installed dependencies
 	local depends
-	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
+	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends' | tail -n1)
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if ! pkg_remove "$dep"; then
