@@ -36,61 +36,68 @@ get_value() {
 }
 
 extract_deb() {
-	local destdir=${2:-.}
-	local pn=${1##*/}
+	local destdir
+	local pn
+	destdir=${2:-.}
+	pn=${1##*/}
 	pn=${pn%.*}
 	pn=${pn%%_*}
 
-	if !  ar x   $1 2>/dev/null &&
-	   ! tar xzf $1 2>/dev/null; then
+	if !  ar x   "$1" 2>/dev/null &&
+	   ! tar xzf "$1" 2>/dev/null; then
 		return 1
 	fi
 
-	install -d $destdir$PREFIX/info/$pn/
-	tar xzf control.tar.gz -C $destdir$PREFIX/info/$pn/
+	install -d "$destdir$PREFIX/info/$pn/"
+	tar xzf control.tar.gz -C "$destdir$PREFIX/info/$pn/"
 	rm control.tar.gz
 
-	tar xzf data.tar.gz -C $destdir/
+	tar xzf data.tar.gz -C "$destdir/"
 	rm data.tar.gz
 
 	rm debian-binary
 }
 
 files() {
-	find $1/ -type f | sed -e "s,^$1,," -e "\:^$PREFIX/:d"
+	find "$1/" -type f | sed -e "s,^$1,," -e "\:^$PREFIX/:d"
 }
 
 package_tgz() {
-	local tgzdir=${1:-.}
-	local pn=$(cat $tgzdir$PREFIX/info/*/control 2>/dev/null | get_value 'Package')
+	local tgzdir
+	local pn
+	tgzdir=${1:-.}
+	pn=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Package')
 	if [ -z "$pn" ]; then
 		die "$1: Invalid directory!"
 	fi
 
-	local pv=$(cat $tgzdir$PREFIX/info/*/control 2>/dev/null | get_value 'Version')
+	local pv
+	pv=$(cat "$tgzdir$PREFIX/info/"*/control 2>/dev/null | get_value 'Version')
 	pv=${pv:-0}
-	local tgz=${pn}_${pv}.tgz
+	local tgz
+	tgz=${pn}_${pv}.tgz
 
-	files $tgzdir >$tgzdir$PREFIX/info/$pn/files
-	( cd $tgzdir/ && tar czf $OLDPWD/$tgz --exclude=$1 * )
+	files "$tgzdir" >"$tgzdir$PREFIX/info/$pn/files"
+	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" * )
 	echo "$tgz"
 }
 
 do_files() {
-	files ${1:-.}
+	files "${1:-.}"
 }
 
 do_deb2tgz() {
-	local tmpdir=${1%.*}
+	local tmpdir
+	tmpdir=${1%.*}
 
-	install -d $tmpdir/
-	extract_deb $1 $tmpdir
+	install -d "$tmpdir/"
+	extract_deb "$1" "$tmpdir"
 	if ! $EXTRACT_ONLY; then
 		if ! $FILES; then
-			package_tgz $tmpdir
-			rm -rf $tmpdir/
+			package_tgz "$tmpdir"
+			rm -rf "$tmpdir/"
 		else
-			do_list $tmpdir
+			do_list "$tmpdir"
 		fi
 	fi
 }
@@ -141,9 +148,9 @@ fi
 for arg in $args; do
 	if [ -d "$arg" ]; then
 		for deb in *.deb *.ipk *.opk; do
-			do_deb2tgz $deb
+			do_deb2tgz "$deb"
 		done
 	else
-		do_deb2tgz $arg
+		do_deb2tgz "$arg"
 	fi
 done
