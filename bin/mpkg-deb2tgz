@@ -93,7 +93,7 @@ Options:
  --extract-only        Extract only.
  -f or --files         Print list of files.
  -h or --help          Display this message.
- -v or --version       Display the version.
+ -V or --version       Display the version.
 EOF
 }
 
@@ -109,7 +109,7 @@ parse_arguments() {
 		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
 			exit 0
-		elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
+		elif [ "$1" = "-V" ] || [ "$1" = "--version" ]; then
 			echo $VERSION
 			exit 0
 		else
