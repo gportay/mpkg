@@ -8,6 +8,11 @@
 PREFIX=/var/lib/mpkg
 VERSION=0.1
 
+die() {
+	echo "Error: $*" >&2
+	exit 1
+}
+
 control() {
 	local pn
 	pn=${1##*/}
@@ -21,7 +26,46 @@ control() {
 	echo ""
 }
 
-for tgz in ${1:-./}*.tgz; do
+usage() {
+	cat <<EOF
+Usage: ${0##*/} [OPTIONS] [DIRECTORY=./]
+
+Options:
+ -h or --help          Display this message.
+ -v or --version       Display the version.
+EOF
+}
+
+parse_arguments() {
+	FILES=false
+
+	while [ $# -ne 0 ]; do
+		if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+			usage
+			exit 0
+			echo $VERSION
+		elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
+			echo $VERSION
+			exit 0
+		elif [ -z "$dir" ]; then
+			if [ ! -d "$1" ]; then
+				die "$1: No such directory!"
+			fi
+
+			dir="$1/"
+			dir="${dir/\/\//\/}"
+		else
+			usage >&2
+			echo  >&2
+			die "Too many arguments!"
+		fi
+		shift
+	done
+}
+
+parse_arguments $*
+
+for tgz in ${dir:-./}*.tgz; do
 	control "$tgz" | sed -e '/^$/d'
 	echo ""
 done
