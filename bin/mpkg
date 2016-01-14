@@ -436,7 +436,7 @@ DO_CLEANUP="rm -Rf $tmpdir"
 trap cleanup 0
 
 if [ -e "$lockfile" ]; then
-	die "Only one single instance should run at a time! "
+	die "Only one single instance should run at a time!"
 fi
 
 DO_CLEANUP="$DO_CLEANUP ; rm -f $lockfile ;"
