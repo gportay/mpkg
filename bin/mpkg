@@ -48,17 +48,6 @@ get_pkg() {
 	sed -n -e "/Package: $1$/,/^\$/p"
 }
 
-get_depends() {
-	local depends
-	local pkg
-	depends=$(cat "$ROOT$PREFIX/lists/"* 2>/dev/null | get_pkg "$1" | get_value 'Depends')
-	pkg=
-	for pkg in $depends; do
-		get_depends "$pkg"
-		echo "$pkg"
-	done
-}
-
 download() {
 	wget -qO- "$1" $WGETOPTS
 }
