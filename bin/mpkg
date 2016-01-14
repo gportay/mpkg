@@ -45,7 +45,12 @@ get_value() {
 }
 
 get_pkg() {
-	sed -n -e "/Package: $1$/,/^\$/p"
+	if [ -z "$2" ]; then
+		sed -n -e "/Package: $1$/,/^\$/p"
+	else
+		sed -n -e "/Package: $1$/,/^$/{/Version: ${2:-.*}$/,/^$/p}" | \
+		sed    -e "/Version: ${2:-.*}$/iPackage: $1"
+	fi
 }
 
 download() {
