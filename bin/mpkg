@@ -143,11 +143,33 @@ version_latest() {
 	echo "$ref"
 }
 
+feed_get_pkg_latest() {
+	local version
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		version=$(cat "$feed" | get_pkg "$pkg" | get_value "Version" | version_latest)
+		if [ -n "$version" ]; then
+			break
+		fi
+	done
+
+	if [ -n "$version" ]; then
+		echo "$version"
+	fi
+}
+
 pkg_fetch() {
 	local pkg
 	local destdir
 	pkg=$1
 	destdir=$2
+
+	# Find the latest version
+	local version=
+	version=$(feed_get_pkg_latest "$pkg")
 
 	# Find which feed provides package
 	local filename=
@@ -156,7 +178,7 @@ pkg_fetch() {
 			break
 		fi
 
-		filename=$(cat "$feed" | get_pkg "$pkg" | get_value "Filename" | tail -n1)
+		filename=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "Filename")
 		if [ -n "$filename" ]; then
 			break
 		fi
@@ -180,7 +202,7 @@ pkg_fetch() {
 
 	# Check package
 	local md5
-	md5=$(cat "$feed" | get_pkg "$pkg" | get_value "MD5Sum" | tail -n1)
+	md5=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "MD5Sum" | tail -n1)
 	echo "$md5  $file" >"$cachedir/$file.md5"
 	if [ -e "$cachedir/$file" ]; then
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
