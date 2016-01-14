@@ -6,7 +6,7 @@
 #
 
 PREFIX=/var/lib/mpkg
-VERSION=0.1
+VERSION=0.1.0
 
 die() {
 	echo "Error: $*" >&2
