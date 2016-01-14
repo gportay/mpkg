@@ -220,31 +220,18 @@ pkg_fetch() {
 		version=$(feed_get_pkg_latest "$pkg")
 	fi
 
-	# Find which feed provides package
-	local filename=
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
-			break
-		fi
-
-		filename=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "Filename")
-		if [ -n "$filename" ]; then
-			break
-		fi
-	done
-
-	if [ -z "$filename" ]; then
+	# Fetch package
+	local uri
+	uri=$(feed_get_pkg_uri "$pkg" "$version")
+	if [ -z "$uri" ]; then
 		echo "$pkg: Cannot find package in feeds!" >&2
 		return 1
 	fi
 
-	# Fetch package
 	local file
-	local url
-	file=${filename##*/}
-	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	file=${uri##*/}
 	if [ ! -e "$cachedir/$file" ]; then
-		if ! fetch "${url%/*}/$filename" "$cachedir/$file"; then
+		if ! fetch "$uri" "$cachedir/$file"; then
 			return 1
 		fi
 	fi
