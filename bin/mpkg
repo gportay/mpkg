@@ -90,6 +90,14 @@ pkg_status() {
 	cat "$ROOT$PREFIX/info/$1/control" 2>/dev/null
 }
 
+pkg_is_user_installed() {
+	test -e "$ROOT$PREFIX/info/$1/.user"
+}
+
+pkg_set_user_installed() {
+	touch "$ROOT$PREFIX/info/$1/.user" >&2
+}
+
 pkg_get_needs() {
 	local needs
 	local dep
@@ -328,7 +336,7 @@ pkg_install() {
 		rmdepends=" $depends "
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
 		for rmdep in $rmdepends; do
-			if [ -e "$ROOT$PREFIX/info/$rmdep/.user" ]; then
+			if pkg_is_user_installed "$rmdep"; then
 				echo "Warning: Do not auto-remove user-installed package $rmdep! Keep going..." >&2
 				continue
 			fi
@@ -366,7 +374,7 @@ pkg_install() {
 	# Add the user flag if the package is not required by any other package,
 	# it means it has been installed by the user
 	if [ -z "$requiredby" ]; then
-		touch "$ROOT$PREFIX/info/$pkg/.user"
+		pkg_set_user_installed "$pkg"
 	fi
 
 	if [ -n "${requiredby##* }" ]; then
@@ -398,7 +406,7 @@ pkg_remove() {
 	# Removing auto-installed dependencies
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
-		if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
+		if pkg_is_user_installed "$dep"; then
 			echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
 			continue
 		fi
