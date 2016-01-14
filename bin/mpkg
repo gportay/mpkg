@@ -261,6 +261,11 @@ pkg_remove() {
 	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends' | tail -n1)
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
+		if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
+			echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
+			continue
+		fi
+
 		if ! pkg_remove "$dep"; then
 			abort=true
 			break;
