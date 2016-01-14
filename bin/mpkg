@@ -499,6 +499,31 @@ do_fetch() {
 	done
 }
 
+prompt() {
+	echo -n "$1" " $2? "
+	while read r; do
+		if [ -z "$r" ]; then
+			r="$(echo "$2" | sed -e 's,^\[\(.*\)/.*\]$,\1,')"
+			echo "$r"
+		fi
+
+		r="$(echo "$r" | sed -e 's/.*/\L&/')"
+		case "$r" in
+		y|yes)	r=true; break;;
+		n|no)	r=false; break;;
+		*)	echo "Invalid response!" >&2;
+			echo -n "$1" " $2? "
+			r=
+		esac
+
+		if [ -n "$r" ]; then
+			break;
+		fi
+	done
+
+	"$r"
+}
+
 do_install() {
 	install -d "$cachedir/"
 	install -d "$tmpdir$PREFIX/"
