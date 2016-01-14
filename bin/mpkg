@@ -223,7 +223,7 @@ pkg_fetch() {
 pkg_install() {
 	local pkg
 	pkg=$1
-	if pkg_status "$pkg"; then
+	if pkg_status "$pkg" >/dev/null; then
 		return
 	fi
 
