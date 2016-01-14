@@ -228,10 +228,10 @@ pkg_fetch() {
 		return 1
 	fi
 
-	local file
-	file=${uri##*/}
-	if [ ! -e "$cachedir/$file" ]; then
-		if ! fetch "$uri" "$cachedir/$file"; then
+	local filename
+	filename=${uri##*/}
+	if [ ! -e "$cachedir/$filename" ]; then
+		if ! fetch "$uri" "$cachedir/$filename"; then
 			return 1
 		fi
 	fi
@@ -239,21 +239,21 @@ pkg_fetch() {
 	# Check package
 	local md5
 	md5=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "MD5Sum" | tail -n1)
-	echo "$md5  $file" >"$cachedir/$file.md5"
-	if [ -e "$cachedir/$file" ]; then
-		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
+	echo "$md5  $filename" >"$cachedir/$filename.md5"
+	if [ -e "$cachedir/$filename" ]; then
+		if ( cd "$cachedir/" && ! md5sum --quiet --check "$filename.md5" ); then
 			echo -n "$pkg: Mismatch MD5! "
-			md5sum "$cachedir/$file" | cut -d' ' -f1
-			rm -f "$cachedir/$file"*
+			md5sum "$cachedir/$filename" | cut -d' ' -f1
+			rm -f "$cachedir/$filename"*
 			return 1
 		fi >&2
 	fi
 
 	if [ -n "$destdir" ] && [ "$destdir" != "$cachedir" ]; then
-		mv "$cachedir/$file" "$cachedir/$file.md5" "$destdir"
+		mv "$cachedir/$filename" "$cachedir/$filename.md5" "$destdir"
 	fi
 
-	echo "$file"
+	echo "$filename"
 }
 
 pkg_install() {
