@@ -191,7 +191,7 @@ pkg_fetch() {
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
 			echo -n "$pkg: Mismatch MD5! "
 			md5sum "$cachedir/$file" | cut -d' ' -f1
-			rm -f "$cachedir/$file"
+			rm -f "$cachedir/$file"*
 			return 1
 		fi >&2
 	fi
