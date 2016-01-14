@@ -534,6 +534,11 @@ do_install() {
 		ver=${ver#$pkg}
 		if ! ${REDO:-false} && pkg_status "$name" >/dev/null; then
 			echo "$name: Package already installed!"
+			if ! pkg_is_user_installed "$name"; then
+				if prompt "Do you want to flag package \"$name\" as user-installed" "[No/yes]"; then
+					pkg_set_user_installed "$name"
+				fi
+			fi
 			continue
 		fi
 
