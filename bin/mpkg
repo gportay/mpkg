@@ -6,6 +6,7 @@
 #
 
 PREFIX=/var/lib/mpkg
+VERSION=0.1
 UPDATE=false
 
 cleanup() {
@@ -421,7 +422,7 @@ Options:
  -r or --root DIR      To set the root directory.
  --redo                Redo. [TODO]
  -h or --help          Display this message.
- -v or --version       Display the version.
+ -V or --version       Display the version.
 
 Options for install:
  -u or --update        To update index first.
@@ -442,6 +443,9 @@ parse_arguments() {
 			UPDATE=true
 		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
+			exit 0
+		elif [ "$1" = "-V" ] || [ "$1" = "--version" ]; then
+			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
 			if echo "$func" | grep -qE "update|list-installed|status|fetch|install|remove"; then
