@@ -182,6 +182,31 @@ feed_get_pkg_latest() {
 	fi
 }
 
+feed_get_pkg_uri() {
+	local url
+	local filename
+	url=
+	filename=
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		filename=$(cat "$feed" | get_pkg "$1" "$2" | get_value "Filename")
+		if [ -n "$filename" ]; then
+			break
+		fi
+	done
+
+	if [ -z "$filename" ]; then
+		return 1
+	fi
+
+	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	url=${url%/*}
+	echo "$url/$filename"
+}
+
 pkg_fetch() {
 	local pkg
 	local destdir
