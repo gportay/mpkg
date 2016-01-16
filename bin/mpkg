@@ -151,7 +151,7 @@ pkg_fetch() {
 	destdir=$2
 
 	# Find the latest version
-	local version=
+	local version
 	version=$(feed_get_pkg_latest "$pkg")
 
 	# Find which feed provides package
