@@ -215,6 +215,22 @@ feed_get_pkg_uri() {
 	echo "$url/$filename"
 }
 
+feed_get_pkg_control() {
+	local control
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		control=$(cat "$feed" | get_pkg "$1" "$2")
+		if [ -n "$control" ]; then
+			break
+		fi
+	done
+
+	echo "$control"
+}
+
 feed_get_pkg_md5() {
 	local md5
 	md5=
