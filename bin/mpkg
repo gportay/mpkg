@@ -337,7 +337,7 @@ do_update() {
 	sed -e '/^#/d' "$ROOT/etc/mpkg/feeds.conf" 2>/dev/null | while read name url; do
 		echo -n "Updating feed $name at $url... "
 		fetch "$url" "$ROOT$PREFIX/lists/$name"
-		md5sum "$ROOT$PREFIX/lists/local" | cut -d' ' -f1
+		md5sum "$ROOT$PREFIX/lists/$name" | cut -d' ' -f1
 	done
 }
 
