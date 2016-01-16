@@ -98,6 +98,18 @@ pkg_set_user_installed() {
 	touch "$ROOT$PREFIX/info/$1/.user" >&2
 }
 
+pkg_is_locked() {
+	test -e "$ROOT$PREFIX/info/$1/.lock"
+}
+
+pkg_lock() {
+	touch "$ROOT$PREFIX/info/$1/.lock" >&2
+}
+
+pkg_unlock() {
+	rm -f "$ROOT$PREFIX/info/$1/.lock"
+}
+
 pkg_get_needs() {
 	local needs
 	local dep
@@ -414,6 +426,9 @@ pkg_remove() {
 	pkg=$1
 	if ! pkg_status "$pkg" >/dev/null; then
 		return
+	elif pkg_is_locked "$pkg"; then
+		echo "Error: $pkg: Cannot remove package! It is locked." >&2
+		return 1
 	elif required_by=$(pkg_get_required_by "$pkg"); then
 		echo "Error: $pkg: Cannot remove package! It is required by: $required_by." >&2
 		return 1
@@ -497,6 +512,9 @@ do_list_installed() {
 		if [ -f "${ctrl%/*}/.configure" ]; then
 			echo "Configure-Required: yes"
 		fi
+		if pkg_is_locked "$pkg"; then
+			echo "Locked: yes"
+		fi
 		local needs
 		if needs=$(pkg_get_needs "$pkg"); then
 			echo "MPKG-Needs: $needs"
@@ -539,6 +557,20 @@ do_fetch() {
 	for pkg in $*; do
 		echo "Fetching package $pkg..."
 		pkg_fetch "$pkg" ./
+	done
+}
+
+do_lock() {
+	for pkg in $*; do
+		if ! pkg_status "$pkg" >/dev/null; then
+			echo "$pkg: Package not installed!"
+			continue
+		fi
+
+		if ! pkg_$func "$pkg"; then
+			die "Failed to $func $pkg!"
+		fi
+		echo "Package $pkg ${func}ed!"
 	done
 }
 
@@ -617,6 +649,7 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] list-installed
        ${0##*/} [OPTIONS] list-outdated
        ${0##*/} [OPTIONS] status PACKAGE...
+       ${0##*/} [OPTIONS] lock|unlock PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
        ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
 
@@ -652,13 +685,13 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|fetch|install|remove"; then
+			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|lock|unlock|fetch|install|remove"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
 			fi
 			func="$1"
-		elif echo "$func" | grep -qE "fetch|install|remove"; then
+		elif echo "$func" | grep -qE "lock|unlock|fetch|install|remove"; then
 			args="$args $1"
 		elif [ -z "$args" ]; then
 			args="$args $1"
@@ -717,6 +750,15 @@ status)
 	fi
 
 	do_status $args
+	;;
+lock|unlock)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	do_lock $args
 	;;
 install)
 	if [ -z "$args" ]; then
