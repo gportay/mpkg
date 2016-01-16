@@ -226,6 +226,7 @@ pkg_install() {
 
 	# Install missing dependencies
 	local depends
+	local dep
 	depends=$(cat "$tmpdir$PREFIX/info/$pkg/control" | get_value 'Depends')
 	for dep in $depends; do
 		requiredby="$requiredby $pkg"
@@ -295,6 +296,7 @@ pkg_remove() {
 
 	# Removing auto-installed dependencies
 	local depends
+	local dep
 	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends' | tail -n1)
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
