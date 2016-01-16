@@ -240,17 +240,18 @@ pkg_install() {
 	# Installation abort by a dependency
 	if $abort; then
 		local rmdepends
+		local rmdep
 		echo "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
-		for dep in $rmdepends; do
-			if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
-				echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
+		for rmdep in $rmdepends; do
+			if [ -e "$ROOT$PREFIX/info/$rmdep/.user" ]; then
+				echo "Warning: Do not auto-remove user-installed package $rmdep! Keep going..." >&2
 				continue
 			fi
 
-			if ! pkg_remove "$dep"; then
-				echo "Warning: Failed to remove package $dep! Keep going..." >&2
+			if ! pkg_remove "$rmdep"; then
+				echo "Warning: Failed to remove package $rmdep! Keep going..." >&2
 			fi
 		done
 
