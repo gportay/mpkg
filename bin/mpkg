@@ -239,6 +239,7 @@ pkg_install() {
 
 	# Installation abort by a dependency
 	if $abort; then
+		local rmdepends
 		echo "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
