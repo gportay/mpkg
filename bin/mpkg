@@ -437,6 +437,7 @@ parse_arguments() {
 		elif [ "$1" = "-r" ] || [ "$1" = "--root" ]; then
 			shift
 			ROOT="$1"
+			export ROOT
 		elif [ "$1" = "--redo" ]; then
 			REDO=true
 		elif [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
