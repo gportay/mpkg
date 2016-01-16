@@ -436,7 +436,7 @@ parse_arguments() {
 			FORCE=true
 		elif [ "$1" = "-r" ] || [ "$1" = "--root" ]; then
 			shift
-			ROOT="$1"
+			ROOT="$(realpath "$1" 2>/dev/null || ( cd "$1/" && pwd ))"
 			export ROOT
 		elif [ "$1" = "--redo" ]; then
 			REDO=true
