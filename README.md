@@ -115,12 +115,11 @@ limited to the concerned package and not the whole database.
 
 ## CLI API
 
-*mPKG* provides the *2* main operations of a classical *package manager*:
+*mPKG* provides the 3 main operations of a classical *package manager*:
 
 1. `install`
 1. `remove`
-
-The `upgrade` will come later to keep the system *up-to-date*.
+1. `upgrade`
 
 ## TODO
 
@@ -130,7 +129,6 @@ The `upgrade` will come later to keep the system *up-to-date*.
 
 In the **TODO** list:
 
-* Add `upgrade` feature to keep the system *up-to-date*
 * Manage `Conffiles` and add `--purge` option when package is *removed*
 * Extra features such as `whatprovides/whatdepends` package or `find/search`
 for files are helpful
