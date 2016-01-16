@@ -223,6 +223,7 @@ pkg_install() {
 	# Extract package data
 	echo "$pkg: Unarchiving package meta-data..."
 	pkg_extract_metadata "$cachedir/$file" "$tmpdir"
+	install -d "$tmpdir$PREFIX/info/$pkg/needs/"
 
 	# Install missing dependencies
 	local depends
@@ -235,6 +236,8 @@ pkg_install() {
 			break;
 		fi
 		requiredby="${requiredby% *}"
+
+		ln -sf "../../$dep" "$tmpdir$PREFIX/info/$pkg/needs/$dep"
 	done
 
 	# Installation abort by a dependency
@@ -253,6 +256,8 @@ pkg_install() {
 			if ! pkg_remove "$rmdep"; then
 				echo "Warning: Failed to remove package $rmdep! Keep going..." >&2
 			fi
+
+			rm "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
 		done
 
 		return 1
