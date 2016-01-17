@@ -186,6 +186,42 @@ pkg_is_outdated() {
 	version_lt "$val" "$ref" && echo "$ref"
 }
 
+pkg_get_needs() {
+	local needs
+	local dep
+	for need in "$ROOT$PREFIX/info/$1/needs/"*; do
+		if [ ! -h "$need" ]; then
+			break
+		fi
+
+		needs="$needs ${need##*/}"
+	done
+
+	if [ -z "$needs" ]; then
+		return 1
+	fi
+
+	echo "${needs# *}"
+}
+
+pkg_get_required_by() {
+	local required
+	local req
+	for req in "$ROOT$PREFIX/info/$1/required-by/"*; do
+		if [ ! -h "$req" ]; then
+			break
+		fi
+
+		required="$required ${req##*/}"
+	done
+
+	if [ -z "$required" ]; then
+		return 1
+	fi
+
+	echo "${required# *}"
+}
+
 version_lt() {
 	echo "$*" | awk '{
 	split($1, val, ".");
