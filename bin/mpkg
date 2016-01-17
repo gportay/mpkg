@@ -341,6 +341,9 @@ pkg_remove() {
 	pkg=$1
 	if ! pkg_status "$pkg" >/dev/null; then
 		return
+	elif required_by=$(pkg_get_required_by "$pkg"); then
+		echo "Error: $pkg: Cannot remove package! It is required by: $required_by." >&2
+		return 1
 	fi
 
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
