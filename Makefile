@@ -105,6 +105,14 @@ all:: tgz/Index
 version:
 	echo "$(RELEASE)"
 
+tgz-y := $(wildcard tgz/*.tgz)
+
+release: tgz/Index $(tgz-y)
+	install -d releases/$(RELEASE)/
+	for f in $?; do \
+		cp $$f releases/$(RELEASE)/; \
+	done
+
 clean:
 	rm -rf tgz/
 
