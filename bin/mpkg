@@ -351,6 +351,7 @@ do_update() {
 }
 
 do_list_installed() {
+	local ctrl
 	for ctrl in $ROOT$PREFIX/info/*/control; do
 		if [ ! -f "$ctrl" ]; then
 			break
