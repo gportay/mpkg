@@ -410,12 +410,24 @@ do_list_installed() {
 			break
 		fi
 
+		local pkg
+		pkg=${ctrl#$ROOT$PREFIX/info/}
+		pkg=${pkg%/control}
+
 		cat "$ctrl"
 		if [ -f "${ctrl%/*}/.user" ]; then
 			echo "User-Installed: yes"
 		fi
 		if [ -f "${ctrl%/*}/.configure" ]; then
 			echo "Configure-Required: yes"
+		fi
+		local needs
+		if needs=$(pkg_get_needs "$pkg"); then
+			echo "MPKG-Needs: $needs"
+		fi
+		local required_by
+		if required_by=$(pkg_get_required_by "$pkg"); then
+			echo "MPKG-Required-by: $required_by"
 		fi
 		echo ""
 	done
