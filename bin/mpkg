@@ -299,7 +299,7 @@ pkg_remove() {
 	# Removing auto-installed dependencies
 	local depends
 	local dep
-	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends' | tail -n1)
+	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
