@@ -88,6 +88,42 @@ pkg_status() {
 	cat "$ROOT$PREFIX/info/$1/control" 2>/dev/null
 }
 
+pkg_get_needs() {
+	local needs
+	local dep
+	for need in "$ROOT$PREFIX/info/$1/needs/"*; do
+		if [ ! -h "$need" ]; then
+			break
+		fi
+
+		needs="$needs ${need##*/}"
+	done
+
+	if [ -z "$needs" ]; then
+		return 1
+	fi
+
+	echo "${needs# *}"
+}
+
+pkg_get_required_by() {
+	local required
+	local req
+	for req in "$ROOT$PREFIX/info/$1/required-by/"*; do
+		if [ ! -h "$req" ]; then
+			break
+		fi
+
+		required="$required ${req##*/}"
+	done
+
+	if [ -z "$required" ]; then
+		return 1
+	fi
+
+	echo "${required# *}"
+}
+
 version_lt() {
 	echo "$*" | awk '{
 	split($1, val, ".");
@@ -207,6 +243,9 @@ pkg_install() {
 	local pkg
 	pkg=$1
 	if pkg_status "$pkg" >/dev/null; then
+		if [ -n "${requiredby##* }" ]; then
+			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
+		fi
 		return
 	fi
 
@@ -223,6 +262,8 @@ pkg_install() {
 	# Extract package data
 	echo "$pkg: Unarchiving package meta-data..."
 	pkg_extract_metadata "$cachedir/$file" "$tmpdir"
+	install -d "$tmpdir$PREFIX/info/$pkg/needs/"
+	install -d "$tmpdir$PREFIX/info/$pkg/required-by/"
 
 	# Install missing dependencies
 	local depends
@@ -235,6 +276,8 @@ pkg_install() {
 			break;
 		fi
 		requiredby="${requiredby% *}"
+
+		ln -sf "../../$dep" "$tmpdir$PREFIX/info/$pkg/needs/$dep"
 	done
 
 	# Installation abort by a dependency
@@ -253,6 +296,8 @@ pkg_install() {
 			if ! pkg_remove "$rmdep"; then
 				echo "Warning: Failed to remove package $rmdep! Keep going..." >&2
 			fi
+
+			rm "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
 		done
 
 		return 1
@@ -284,6 +329,10 @@ pkg_install() {
 		touch "$ROOT$PREFIX/info/$pkg/.user"
 	fi
 
+	if [ -n "${requiredby##* }" ]; then
+		ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
+	fi
+
 	echo "$pkg: Package installed!"
 }
 
@@ -296,10 +345,14 @@ pkg_remove() {
 
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
 
-	# Removing auto-installed dependencies
 	local depends
 	local dep
 	depends=$(pkg_status "$pkg" | get_pkg "$pkg" | get_value 'Depends')
+	for dep in $depends; do
+		rm -f "$ROOT$PREFIX/info/$dep/required-by/$pkg"
+	done
+
+	# Removing auto-installed dependencies
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
