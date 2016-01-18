@@ -107,7 +107,7 @@ version:
 
 tgz-y := $(wildcard tgz/*.tgz)
 
-release: tgz/Index $(tgz-y)
+release: $(wildcard tgz/Index*) $(tgz-y)
 	install -d releases/$(RELEASE)/
 	for f in $?; do \
 		cp $$f releases/$(RELEASE)/; \
