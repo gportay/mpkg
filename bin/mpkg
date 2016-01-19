@@ -183,12 +183,15 @@ feed_get_pkg_latest() {
 pkg_fetch() {
 	local pkg
 	local destdir
+	local version
 	pkg=$1
 	destdir=$2
+	version=$3
 
 	# Find the latest version
-	local version
-	version=$(feed_get_pkg_latest "$pkg")
+	if [ -z "$version" ]; then
+		version=$(feed_get_pkg_latest "$pkg")
+	fi
 
 	# Find which feed provides package
 	local filename=
@@ -241,7 +244,9 @@ pkg_fetch() {
 
 pkg_install() {
 	local pkg
+	local ver
 	pkg=$1
+	ver=$2
 	if pkg_status "$pkg" >/dev/null; then
 		if [ -n "${requiredby##* }" ]; then
 			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
@@ -254,7 +259,7 @@ pkg_install() {
 	# Fetching package
 	echo "$pkg: Fetching package..."
 	local file
-	file=$(pkg_fetch "$pkg" "$cachedir")
+	file=$(pkg_fetch "$pkg" "$cachedir" "$ver")
 	if [ -z "$file" ]; then
 		return 1
 	fi
@@ -456,17 +461,20 @@ do_install() {
 	install -d "$tmpdir$PREFIX/"
 	for pkg in $*; do
 		abort=false
-		if pkg_status "$pkg" >/dev/null; then
-			echo "$pkg: Package already installed!"
+		name=$(echo "$pkg" | cut -d_ -f1)
+		ver=$(echo "$pkg" | cut -d_ -f2)
+		ver=${ver#$pkg}
+		if pkg_status "$name" >/dev/null; then
+			echo "$name: Package already installed!"
 			continue
 		fi
 
-		echo "Installing package $pkg..."
+		echo "Installing package $name..."
 		requiredby=
-		if ! pkg_install "$pkg"; then
-			die "Failed to install $pkg!"
+		if ! pkg_install "$name" "$ver"; then
+			die "Failed to install $name!"
 		fi
-		echo "Package $pkg installed!"
+		echo "Package $name installed!"
 	done
 }
 
@@ -493,7 +501,7 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] list-installed
        ${0##*/} [OPTIONS] status PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
-       ${0##*/} [OPTIONS] install|remove PACKAGE...
+       ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
 
 Options:
  -f or --force         Force.
