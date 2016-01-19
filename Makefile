@@ -146,6 +146,9 @@ $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
 %.sig: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem %
 	openssl dgst -sha1 -sign $< $* >$@
 
+verify-%: mpkg_rsa.pub %.sig
+	openssl dgst -sha1 -verify $< -signature $*.sig $*
+
 tgz-y := $(wildcard tgz/*.tgz)
 
 tgzsig-y := $(wildcard tgz/*.tgz.sig)
