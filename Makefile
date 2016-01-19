@@ -105,9 +105,56 @@ all:: tgz/Index
 version:
 	echo "$(RELEASE)"
 
+.SECONDARY:: mpkg_rsa.pem mpkg_rsa.pub
+
+keys: mpkg_rsa.pem mpkg_rsa.pub
+
+setup:
+ifeq (,$(findstring $(USER),$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g')))
+	groupadd --force --system mpkg
+	usermod --append --groups mpkg $(USER)
+else
+	@echo "Your are already a member or mpkg group!"
+endif
+
+install-keys: mpkg_rsa.pem
+ifeq (,$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g'))
+	make setup
+endif
+	install --owner root --group mpkg --directory $(datarootdir)/mpkg/keys.d/
+	for key in $?; do \
+		install --owner root --group mpkg --mode 0640 $$key $(datarootdir)/mpkg/keys.d/; \
+	done
+
+.SILENT:: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem
+$(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
+	@echo "Error: $(@F): Private key is missing!" >&2
+	@echo "       Either copy your private key into $(CURDIR)/$(@F)," >&2
+	@echo "       or generate your private key using $$ make $(@F)," >&2
+	@echo "       then install it using $$ sudo make install-keys" >&2
+	@false
+
+%.pem:
+	openssl genrsa -aes256 -out $@
+
+%.pem-decrypted: %.pem
+	openssl rsa -in $< -out $@
+
+%.pub: %.pem
+	openssl rsa -in $< -out $@ -outform PEM -pubout
+
+%.sig: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem %
+	openssl dgst -sha1 -sign $< $* >$@
+
 tgz-y := $(wildcard tgz/*.tgz)
 
-release: $(wildcard tgz/Index*) $(tgz-y)
+tgzsig-y := $(wildcard tgz/*.tgz.sig)
+
+tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
+
+sign: tgz/Index.sig $(tgzsig-m)
+
+release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 	install -d releases/$(RELEASE)/
 	for f in $?; do \
 		cp $$f releases/$(RELEASE)/; \
