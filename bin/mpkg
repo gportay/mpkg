@@ -99,7 +99,11 @@ pkg_run_script() {
 }
 
 pkg_status() {
-	cat "$ROOT$PREFIX/info/$1/control" 2>/dev/null
+	if [ -z "$2" ] || grep -qE "^Version: $2$" "$ROOT$PREFIX/info/$1/control"; then
+		cat "$ROOT$PREFIX/info/$1/control"
+	else
+		return 1
+	fi 2>/dev/null
 }
 
 pkg_is_user_installed() {
@@ -339,7 +343,7 @@ pkg_install() {
 	local ver
 	pkg=$1
 	ver=$2
-	if ! ${REDO:-false} && pkg_status "$pkg" >/dev/null; then
+	if ! ${REDO:-false} && pkg_status "$pkg" "$ver" >/dev/null; then
 		if [ -n "${requiredby##* }" ]; then
 			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
 		fi
