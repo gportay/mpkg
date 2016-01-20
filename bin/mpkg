@@ -247,7 +247,7 @@ pkg_install() {
 	local ver
 	pkg=$1
 	ver=$2
-	if pkg_status "$pkg" >/dev/null; then
+	if ! ${REDO:-false} && pkg_status "$pkg" >/dev/null; then
 		if [ -n "${requiredby##* }" ]; then
 			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
 		fi
@@ -464,7 +464,7 @@ do_install() {
 		name=$(echo "$pkg" | cut -d_ -f1)
 		ver=$(echo "$pkg" | cut -d_ -f2)
 		ver=${ver#$pkg}
-		if pkg_status "$name" >/dev/null; then
+		if ! ${REDO:-false} && pkg_status "$name" >/dev/null; then
 			echo "$name: Package already installed!"
 			continue
 		fi
@@ -506,12 +506,12 @@ Usage: ${0##*/} [OPTIONS] update
 Options:
  -f or --force         Force.
  -r or --root DIR      To set the root directory.
- --redo                Redo. [TODO]
  -h or --help          Display this message.
  -V or --version       Display the version.
 
 Options for install:
  -u or --update        To update index first.
+ --redo                Redo.
 EOF
 }
 
