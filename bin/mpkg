@@ -800,6 +800,10 @@ DO_CLEANUP="rm -Rf $tmpdir"
 trap cleanup 0 INT
 install -d "$ROOT$PREFIX/"
 
+if [ -n "$ROOT" ]; then
+	debug "Note: root is \"$ROOT\"."
+fi
+
 if [ -e "$lockfile" ]; then
 	die "Only one single instance should run at a time!"
 fi
