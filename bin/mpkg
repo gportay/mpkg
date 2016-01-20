@@ -90,6 +90,14 @@ pkg_status() {
 	cat "$ROOT$PREFIX/info/$1/control" 2>/dev/null
 }
 
+pkg_is_user_installed() {
+	test -e "$ROOT$PREFIX/info/$1/.user"
+}
+
+pkg_set_user_installed() {
+	touch "$ROOT$PREFIX/info/$1/.user" >&2
+}
+
 pkg_get_needs() {
 	local needs
 	local dep
@@ -182,6 +190,52 @@ feed_get_pkg_latest() {
 	fi
 }
 
+feed_get_pkg_uri() {
+	local url
+	local filename
+	url=
+	filename=
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		filename=$(cat "$feed" | get_pkg "$1" "$2" | get_value "Filename")
+		if [ -n "$filename" ]; then
+			break
+		fi
+	done
+
+	if [ -z "$filename" ]; then
+		return 1
+	fi
+
+	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	url=${url%/*}
+	echo "$url/$filename"
+}
+
+feed_get_pkg_md5() {
+	local md5
+	md5=
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		md5=$(cat "$feed" | get_pkg "$1" "$2" | get_value "MD5Sum")
+		if [ -n "$md5" ]; then
+			break
+		fi
+	done
+
+	if [ -z "$md5" ]; then
+		return 1
+	fi
+
+	echo "$md5"
+}
+
 pkg_fetch() {
 	local pkg
 	local destdir
@@ -195,53 +249,40 @@ pkg_fetch() {
 		version=$(feed_get_pkg_latest "$pkg")
 	fi
 
-	# Find which feed provides package
-	local filename=
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
-			break
-		fi
-
-		filename=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "Filename")
-		if [ -n "$filename" ]; then
-			break
-		fi
-	done
-
-	if [ -z "$filename" ]; then
+	# Fetch package
+	local uri
+	uri=$(feed_get_pkg_uri "$pkg" "$version")
+	if [ -z "$uri" ]; then
 		echo "$pkg: Cannot find package in feeds!" >&2
 		return 1
 	fi
 
-	# Fetch package
-	local file
-	local url
-	file=${filename##*/}
-	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
-	if [ ! -e "$cachedir/$file" ]; then
-		if ! fetch "${url%/*}/$filename" "$cachedir/$file"; then
+	local filename
+	filename=${uri##*/}
+	if [ ! -e "$cachedir/$filename" ]; then
+		if ! fetch "$uri" "$cachedir/$filename"; then
 			return 1
 		fi
 	fi
 
 	# Check package
 	local md5
-	md5=$(cat "$feed" | get_pkg "$pkg" "$version" | get_value "MD5Sum" | tail -n1)
-	echo "$md5  $file" >"$cachedir/$file.md5"
-	if [ -e "$cachedir/$file" ]; then
-		if ( cd "$cachedir/" && ! md5sum --quiet --check "$file.md5" ); then
+	md5=$(feed_get_pkg_md5 "$pkg" "$version")
+	echo "$md5  $filename" >"$cachedir/$filename.md5"
+	if [ -e "$cachedir/$filename" ]; then
+		if ( cd "$cachedir/" && ! md5sum --quiet --check "$filename.md5" ); then
 			echo -n "$pkg: Mismatch MD5! "
-			md5sum "$cachedir/$file" | cut -d' ' -f1
-			rm -f "$cachedir/$file"*
+			md5sum "$cachedir/$filename" | cut -d' ' -f1
+			rm -f "$cachedir/$filename"*
 			return 1
 		fi >&2
 	fi
 
 	if [ -n "$destdir" ] && [ "$destdir" != "$cachedir" ]; then
-		mv "$cachedir/$file" "$cachedir/$file.md5" "$destdir"
+		mv "$cachedir/$filename" "$cachedir/$filename.md5" "$destdir"
 	fi
 
-	echo "$file"
+	echo "$filename"
 }
 
 pkg_install() {
@@ -295,7 +336,7 @@ pkg_install() {
 		rmdepends=" $depends "
 		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
 		for rmdep in $rmdepends; do
-			if [ -e "$ROOT$PREFIX/info/$rmdep/.user" ]; then
+			if pkg_is_user_installed "$rmdep"; then
 				echo "Warning: Do not auto-remove user-installed package $rmdep! Keep going..." >&2
 				continue
 			fi
@@ -333,7 +374,7 @@ pkg_install() {
 	# Add the user flag if the package is not required by any other package,
 	# it means it has been installed by the user
 	if [ -z "$requiredby" ]; then
-		touch "$ROOT$PREFIX/info/$pkg/.user"
+		pkg_set_user_installed "$pkg"
 	fi
 
 	if [ -n "${requiredby##* }" ]; then
@@ -365,7 +406,7 @@ pkg_remove() {
 	# Removing auto-installed dependencies
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
-		if [ -e "$ROOT$PREFIX/info/$dep/.user" ]; then
+		if pkg_is_user_installed "$dep"; then
 			echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
 			continue
 		fi
