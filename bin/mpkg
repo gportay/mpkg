@@ -560,7 +560,7 @@ lockfile=$ROOT/var/run/mpkg/.lock
 cachedir=$ROOT/var/cache/mpkg
 tmpdir=$(mktemp -d "$ROOT/tmp/${0##*/}-XXXXXX" 2>/dev/null || echo "$ROOT/tmp/${0##*/}-$$")
 DO_CLEANUP="rm -Rf $tmpdir"
-trap cleanup 0
+trap cleanup 0 SIGINT
 
 if [ -e "$lockfile" ]; then
 	die "Only one single instance should run at a time!"
