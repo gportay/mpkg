@@ -9,6 +9,10 @@ PREFIX=/var/lib/mpkg
 VERSION=0.1.1
 UPDATE=false
 
+debug() {
+	${DEBUG:-true} "\e[33;1;4mDEBUG:\e[0m \e[33m$*\e[0m" >&2
+}
+
 cleanup() {
 	local rc=$?
 	$DO_CLEANUP
@@ -656,6 +660,7 @@ Usage: ${0##*/} [OPTIONS] update
 Options:
  -f or --force         Force.
  -r or --root DIR      To set the root directory.
+ -D or --debug         Turn on debug messages.
  -h or --help          Display this message.
  -V or --version       Display the version.
 
@@ -674,6 +679,8 @@ parse_arguments() {
 			shift
 			ROOT="$(realpath "$1" 2>/dev/null || ( cd "$1/" && pwd ))"
 			export ROOT
+		elif [ "$1" = "-D" ] || [ "$1" = "--debug" ]; then
+			DEBUG="echo -e"
 		elif [ "$1" = "--redo" ]; then
 			REDO=true
 		elif [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
