@@ -17,6 +17,10 @@ verbose() {
 	${VERBOSE:-true} $*
 }
 
+log() {
+	echo "$(date '+%a %b %T') $func[$$]: $*" >>$ROOT$PREFIX/log
+}
+
 cleanup() {
 	local rc=$?
 	$DO_CLEANUP
@@ -660,6 +664,7 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] lock|unlock PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
        ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
+       ${0##*/} [OPTIONS] log
 
 Options:
  -f or --force         Force.
@@ -699,7 +704,7 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|lock|unlock|fetch|install|remove"; then
+			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|log"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
@@ -725,6 +730,7 @@ cachedir=$ROOT/var/cache/mpkg
 tmpdir=$(mktemp -d "$ROOT/tmp/${0##*/}-XXXXXX" 2>/dev/null || echo "$ROOT/tmp/${0##*/}-$$")
 DO_CLEANUP="rm -Rf $tmpdir"
 trap cleanup 0 SIGINT
+install -d $ROOT$PREFIX/
 
 if [ -e "$lockfile" ]; then
 	die "Only one single instance should run at a time!"
@@ -795,6 +801,9 @@ remove)
 	fi
 
 	do_remove $args
+	;;
+log)
+	cat "$ROOT$PREFIX/log" 2>/dev/null || true
 	;;
 *)
 	usage >&2
