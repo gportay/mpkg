@@ -302,7 +302,7 @@ pkg_install() {
 				echo "Warning: Failed to remove package $rmdep! Keep going..." >&2
 			fi
 
-			rm "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
+			rm -f "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
 		done
 
 		return 1
