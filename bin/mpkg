@@ -43,6 +43,7 @@ download() {
 }
 
 fetch() {
+	install -d ${2%/*}/
 	if echo "$1" | grep -qE '^file://'; then
 		cp "${1##*://}" "$2"
 	else
@@ -459,7 +460,6 @@ do_fetch() {
 }
 
 do_install() {
-	install -d "$cachedir/"
 	install -d "$tmpdir$PREFIX/"
 	for pkg in $*; do
 		abort=false
