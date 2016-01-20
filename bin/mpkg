@@ -10,7 +10,9 @@ VERSION=0.1.1
 UPDATE=false
 
 cleanup() {
+	local rc=$?
 	$DO_CLEANUP
+	exit $rc
 }
 
 die() {
