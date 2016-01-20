@@ -677,11 +677,15 @@ Options:
 Options for install:
  -u or --update        To update index first.
  --redo                Redo.
+
+Options for log:
+ -c or --clear         Clear logs.
 EOF
 }
 
 parse_arguments() {
 	UPDATE=false
+	CLEAR=false
 	while [ $# -ne 0 ]; do
 		if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
 			FORCE=true
@@ -697,6 +701,8 @@ parse_arguments() {
 			REDO=true
 		elif [ "$1" = "-u" ] || [ "$1" = "--update" ]; then
 			UPDATE=true
+		elif [ "$1" = "--clear" ]; then
+			CLEAR=true
 		elif [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
 			exit 0
@@ -803,6 +809,11 @@ remove)
 	do_remove $args
 	;;
 log)
+	if $CLEAR; then
+		rm -f $ROOT$PREFIX/log
+		exit 0
+	fi
+
 	cat "$ROOT$PREFIX/log" 2>/dev/null || true
 	;;
 *)
