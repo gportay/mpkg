@@ -134,6 +134,15 @@ pkg_get_required_by() {
 	echo "${required# *}"
 }
 
+pkg_is_outdated() {
+	local version
+	val=$(cat "$ROOT$PREFIX/info/$1/control" | get_value "Version")
+
+	local ref
+	ref=$(feed_get_pkg_latest "$1")
+	version_lt "$val" "$ref" && echo "$ref"
+}
+
 version_lt() {
 	echo "$*" | awk '{
 	split($1, val, ".");
@@ -213,6 +222,22 @@ feed_get_pkg_uri() {
 	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
 	url=${url%/*}
 	echo "$url/$filename"
+}
+
+feed_get_pkg_control() {
+	local control
+	for feed in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$feed" ]; then
+			break
+		fi
+
+		control=$(cat "$feed" | get_pkg "$1" "$2")
+		if [ -n "$control" ]; then
+			break
+		fi
+	done
+
+	echo "$control"
 }
 
 feed_get_pkg_md5() {
@@ -484,6 +509,24 @@ do_list_installed() {
 	done
 }
 
+do_list_outdated() {
+	local ctrl
+	for ctrl in $ROOT$PREFIX/info/*/control; do
+		if [ ! -f "$ctrl" ]; then
+			break
+		fi
+
+		local pkg
+		pkg=${ctrl#$ROOT$PREFIX/info/}
+		pkg=${pkg%/control}
+
+		if ref=$(pkg_is_outdated "$pkg"); then
+			feed_get_pkg_control "$pkg" "$ref"
+			echo ""
+		fi
+	done
+}
+
 do_status() {
 	for pkg in $*; do
 		if pkg_status "$pkg"; then
@@ -572,6 +615,7 @@ usage() {
 	cat <<EOF
 Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] list-installed
+       ${0##*/} [OPTIONS] list-outdated
        ${0##*/} [OPTIONS] status PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
        ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
@@ -608,7 +652,7 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list-installed|status|fetch|install|remove"; then
+			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|fetch|install|remove"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
@@ -648,6 +692,9 @@ update)
 	;;
 list-installed)
 	do_list_installed
+	;;
+list-outdated)
+	do_list_outdated
 	;;
 fetch)
 	if [ -z "$args" ]; then
