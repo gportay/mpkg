@@ -163,6 +163,14 @@ release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 		cp $$f releases/$(RELEASE)/; \
 	done
 
+.PHONY:: root
+
+root/etc/mpkg/feeds.conf:
+	install -d $(@D)/
+	echo "local file://$(PWD)/tgz/Index" >$@
+
+root: root/etc/mpkg/feeds.conf
+
 clean:
-	rm -rf tgz/
+	rm -rf tgz/ root/
 
