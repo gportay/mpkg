@@ -519,6 +519,7 @@ EOF
 
 parse_arguments() {
 	UPDATE=false
+
 	while [ $# -ne 0 ]; do
 		if [ "$1" = "-f" ] || [ "$1" = "--force" ]; then
 			FORCE=true
