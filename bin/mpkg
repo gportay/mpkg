@@ -805,6 +805,7 @@ if [ -n "$ROOT" ]; then
 fi
 
 if [ -e "$lockfile" ]; then
+	echo "$ rm $lockfile" >&2
 	die "Only one single instance should run at a time!"
 fi
 
