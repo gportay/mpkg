@@ -77,12 +77,12 @@ tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
 	cat $$@
 
 $(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
+$(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(2),$(dir))))
+$(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(2),$(bin))))
+$(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(2),$(bin))))
 endef
 
 define do_pkg =
-$(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(RELEASE),$(dir))))
-$(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(RELEASE),$(bin))))
-$(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(RELEASE),$(bin))))
 $(eval $(call do_pkg_info,$(1),$(RELEASE)))
 
 pkgdirs-m  += tgz/$(1)_$(RELEASE)
