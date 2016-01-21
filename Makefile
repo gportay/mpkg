@@ -50,13 +50,13 @@ all::
 .SILENT:: all version
 
 define do_install =
-.SILENT:: tgz/$(1)_$(2)/$(3)
-tgz/$(1)_$(2)/$(3): $(3)
+.SILENT:: tgz/$(1)_$(2)/$(3)/$(notdir $(4))
+tgz/$(1)_$(2)/$(3)/$(notdir $(4)): $(4)
 	install -d $$(@D)
 	install -m 755 $$< $$(@D)
 	chmod a+x $$@
 
-$(1)-$(2)-bin-y += tgz/$(1)_$(2)/$(3)
+$(1)-$(2)-bin-y += tgz/$(1)_$(2)/$(3)/$(notdir $(4))
 endef
 
 define do_install_dir =
@@ -78,8 +78,8 @@ tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
 
 $(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
 $(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(2),$(dir))))
-$(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(2),$(bin))))
-$(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(2),$(bin))))
+$(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(2),$(sbindir),$(bin))))
+$(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(2),$(bindir),$(bin))))
 endef
 
 define do_pkg =
