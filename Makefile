@@ -61,7 +61,6 @@ endef
 
 define do_install_dir =
 tgz/$(1)_$(2)/$(3):
-	echo "Doing $$@..."
 	install -m 644 -d $$@
 
 $(1)-$(2)-dir-y += tgz/$(1)_$(2)/$(3)
