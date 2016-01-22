@@ -66,6 +66,18 @@ tgz/$(1)_$(2)/$(3):
 $(1)-$(2)-dir-y += tgz/$(1)_$(2)/$(3)
 endef
 
+define do_pkg_script =
+ifneq (,$($(1)-$(3)))
+.SILENT:: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3))
+tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3)): $($(1)-$(3))
+	install -d $$(@D)
+	install -m 755 $$< $$@
+	chmod a+x $$@
+
+$(1)-$(2)-script-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3))
+endif
+endef
+
 define do_pkg_info =
 .SILENT:: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
 tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
@@ -75,7 +87,8 @@ tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
 	echo
 	cat $$@
 
-$(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
+$(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control $$($(1)-$(2)-script-y)
+$(foreach script,preinst postinst prerm postrm,$(eval $(call do_pkg_script,$(1),$(2),$(script))))
 $(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(2),$(dir))))
 $(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(2),$(sbindir),$(bin))))
 $(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(2),$(bindir),$(bin))))
