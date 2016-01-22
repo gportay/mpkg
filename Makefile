@@ -50,42 +50,39 @@ all::
 .SILENT:: all version
 
 define do_install =
-.SILENT:: tgz/$(1)_$(2)/$(3)/$(notdir $(4))
 tgz/$(1)_$(2)/$(3)/$(notdir $(4)): $(4)
-	install -d $$(@D)
-	install -m 755 $$< $$(@D)
-	chmod a+x $$@
+	@install -d $$(@D)
+	@install -m 755 $$< $$(@D)
+	@chmod a+x $$@
 
 $(1)-$(2)-bin-y += tgz/$(1)_$(2)/$(3)/$(notdir $(4))
 endef
 
 define do_install_dir =
 tgz/$(1)_$(2)/$(3):
-	install -m 644 -d $$@
+	@install -m 644 -d $$@
 
 $(1)-$(2)-dir-y += tgz/$(1)_$(2)/$(3)
 endef
 
 define do_pkg_script =
 ifneq (,$($(1)-$(3)))
-.SILENT:: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3))
 tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3)): $($(1)-$(3))
-	install -d $$(@D)
-	install -m 755 $$< $$@
-	chmod a+x $$@
+	@install -d $$(@D)
+	@install -m 755 $$< $$@
+	@chmod a+x $$@
 
 $(1)-$(2)-script-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/$(notdir $(3))
 endif
 endef
 
 define do_pkg_info =
-.SILENT:: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
 tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
-	install -d $$(@D)
-	echo "Package: $(1)" >$$@
-	echo "Version: $(2)" >>$$@
-	echo
-	cat $$@
+	@install -d $$(@D)
+	@echo "Package: $(1)" >$$@
+	@echo "Version: $(2)" >>$$@
+	@echo "---------------------------------------------------------------------- >8 -----"
+	@cat $$@
 
 $(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control $$($(1)-$(2)-script-y)
 $(foreach script,preinst postinst prerm postrm,$(eval $(call do_pkg_script,$(1),$(2),$(script))))
@@ -106,11 +103,14 @@ $(foreach pkg,$(pkg-m),$(eval $(call do_pkg,$(pkg))))
 tgz-m := $(patsubst %,%.tgz,$(pkgdirs-m))
 
 tgz/%.tgz:
-	( cd $(@D)/ && fakeroot -- mpkg-build $* )
+	@echo -n "Filename: ./"
+	@( cd $(@D)/ && fakeroot -- mpkg-build $* )
+	@echo
 
 tgz/Index: $(tgz-m)
-	( cd $(@D)/ && mpkg-make-index ) >$@
-	cat $@
+	@echo "---------------------------------------------------------------------- >8 -----"
+	@( cd $(@D)/ && mpkg-make-index ) >$@
+	@cat $@
 
 all:: tgz/Index
 
