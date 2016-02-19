@@ -1,0 +1,35 @@
+#!/bin/sh -e
+#
+# Copyright 2016 Gaël PORTAY <gael.portay@gmail.com>
+#
+# Licensed under the MIT license.
+#
+
+mkdir -p $ROOT/etc/mpkg/repo.d/
+while [ "$(ls -1 $ROOT/etc/mpkg/repo.d/ | wc -l)" -eq 0 ]; do
+	echo "Important: Install at least one repository!"
+
+	while echo -n "Enter a repository name (ex: mpkg): " &&
+	      read name; do
+		eval name="$name"
+		if [ ! -n "$name" ]; then
+			echo "Error: Invalid name!" >&2;
+			continue
+		fi
+		echo "$name"
+		break;
+	done
+
+	while echo -n "Enter the repository index URL (ex: http://tgz.mpkg.io/Index): " &&
+	      read url; do
+		eval url="$url"
+		if ! echo "$url" | grep -qE '^[a-z0-9_+-]*://.+'; then
+			echo "Error: Invalid URL!" >&2;
+			continue
+		fi
+		echo "$url"
+		break;
+	done
+
+	echo "$url" >$ROOT/etc/mpkg/repo.d/$name
+done

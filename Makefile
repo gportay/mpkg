@@ -41,6 +41,7 @@ psdir		?= $(datarootdir)
 pkg-m		:= mpkg mpkg-tools
 mpkg-dir	:= $(sysconfdir)/mpkg/repos.d $(localstatedir)/lib/mpkg/lists
 mpkg-sbin	:= bin/mpkg
+mpkg-postinst	:= mpkg.postinst
 mpkg-tools-bin	:= bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 
 all::
