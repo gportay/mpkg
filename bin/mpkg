@@ -164,7 +164,7 @@ pkg_get_required_by() {
 }
 
 pkg_is_outdated() {
-	local version
+	local val
 	val=$(cat "$ROOT$PREFIX/info/$1/control" | get_value "Version")
 
 	local ref
