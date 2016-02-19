@@ -274,7 +274,6 @@ feed_get_pkg_control() {
 feed_get_pkg_md5() {
 	local md5
 	local feed
-	md5=
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
