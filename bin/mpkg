@@ -168,7 +168,7 @@ pkg_is_outdated() {
 	val=$(cat "$ROOT$PREFIX/info/$1/control" | get_value "Version")
 
 	local ref
-	ref=$(feed_get_pkg_latest "$1")
+	ref=$(repo_get_pkg_latest "$1")
 	version_lt "$val" "$ref" && echo "$ref"
 }
 
@@ -210,15 +210,15 @@ version_latest() {
 	echo "$ref"
 }
 
-feed_get_pkg_latest() {
+repo_get_pkg_latest() {
 	local version
-	local feed
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
+	local repo
+	for repo in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$repo" ]; then
 			break
 		fi
 
-		version=$(cat "$feed" | get_pkg "$pkg" | get_value "Version" | version_latest)
+		version=$(cat "$repo" | get_pkg "$pkg" | get_value "Version" | version_latest)
 		if [ -n "$version" ]; then
 			break
 		fi
@@ -229,17 +229,17 @@ feed_get_pkg_latest() {
 	fi
 }
 
-feed_get_pkg_uri() {
+repo_get_pkg_uri() {
 	local url
 	local filename
 	url=
 	filename=
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
+	for repo in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$repo" ]; then
 			break
 		fi
 
-		filename=$(cat "$feed" | get_pkg "$1" "$2" | get_value "Filename")
+		filename=$(cat "$repo" | get_pkg "$1" "$2" | get_value "Filename")
 		if [ -n "$filename" ]; then
 			break
 		fi
@@ -249,20 +249,20 @@ feed_get_pkg_uri() {
 		return 1
 	fi
 
-	url=$(cat "$ROOT/etc/mpkg/repo.d/${feed##*/}")
+	url=$(cat "$ROOT/etc/mpkg/repo.d/${repo##*/}")
 	url=${url%/*}
 	echo "$url/$filename"
 }
 
-feed_get_pkg_control() {
+repo_get_pkg_control() {
 	local control
-	local feed
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
+	local repo
+	for repo in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$repo" ]; then
 			break
 		fi
 
-		control=$(cat "$feed" | get_pkg "$1" "$2")
+		control=$(cat "$repo" | get_pkg "$1" "$2")
 		if [ -n "$control" ]; then
 			break
 		fi
@@ -271,15 +271,15 @@ feed_get_pkg_control() {
 	echo "$control"
 }
 
-feed_get_pkg_md5() {
+repo_get_pkg_md5() {
 	local md5
-	local feed
-	for feed in "$ROOT$PREFIX/lists/"*; do
-		if [ ! -f "$feed" ]; then
+	local repo
+	for repo in "$ROOT$PREFIX/lists/"*; do
+		if [ ! -f "$repo" ]; then
 			break
 		fi
 
-		md5=$(cat "$feed" | get_pkg "$1" "$2" | get_value "MD5Sum")
+		md5=$(cat "$repo" | get_pkg "$1" "$2" | get_value "MD5Sum")
 		if [ -n "$md5" ]; then
 			break
 		fi
@@ -302,14 +302,14 @@ pkg_fetch() {
 
 	# Find the latest version
 	if [ -z "$version" ]; then
-		version=$(feed_get_pkg_latest "$pkg")
+		version=$(repo_get_pkg_latest "$pkg")
 	fi
 
 	# Fetch package
 	local uri
-	uri=$(feed_get_pkg_uri "$pkg" "$version")
+	uri=$(repo_get_pkg_uri "$pkg" "$version")
 	if [ -z "$uri" ]; then
-		echo "$pkg: Cannot find package in feeds!" >&2
+		echo "$pkg: Cannot find package in repositories!" >&2
 		return 1
 	fi
 
@@ -323,7 +323,7 @@ pkg_fetch() {
 
 	# Check package
 	local md5
-	md5=$(feed_get_pkg_md5 "$pkg" "$version")
+	md5=$(repo_get_pkg_md5 "$pkg" "$version")
 	echo "$md5  $filename" >"$cachedir/$filename.md5"
 	if [ -e "$cachedir/$filename" ]; then
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$filename.md5" ); then
@@ -501,21 +501,21 @@ pkg_remove() {
 
 do_update() {
 	install -d "$ROOT$PREFIX/lists/"
-	local feed
-	for feed in "$ROOT/etc/mpkg/repo.d/"*; do
-		if [ ! -e "$feed" ]; then
+	local repo
+	for repo in "$ROOT/etc/mpkg/repo.d/"*; do
+		if [ ! -e "$repo" ]; then
 			break;
 		fi
 
 		local url
-		url=$(sed -e '/^#/d' "$feed")
+		url=$(sed -e '/^#/d' "$repo")
 		if [ -z "$url" ]; then
 			continue
 		fi
 
 		local name
-		name="${feed##*/}"
-		echo -n "Updating feed $name at $url... "
+		name="${repo##*/}"
+		echo -n "Updating repository $name at $url... "
 		fetch "$url" "$ROOT$PREFIX/lists/$name"
 		md5sum "$ROOT$PREFIX/lists/$name" | cut -d' ' -f1
 	done
@@ -570,7 +570,7 @@ do_list_outdated() {
 		pkg=${pkg%/control}
 
 		if ref=$(pkg_is_outdated "$pkg"); then
-			feed_get_pkg_control "$pkg" "$ref"
+			repo_get_pkg_control "$pkg" "$ref"
 			echo ""
 		fi
 	done
