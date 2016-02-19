@@ -65,7 +65,7 @@ pkg_remove_metadata() {
 
 pkg_remove_data() {
 	cat "$ROOT$PREFIX/info/$1/files" 2>/dev/null | while read f; do
-		echo rm -f "$f"
+		rm -f "$f"
 	done
 }
 
