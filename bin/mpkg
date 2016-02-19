@@ -93,7 +93,7 @@ pkg_status() {
 
 pkg_get_needs() {
 	local needs
-	local dep
+	local need
 	for need in "$ROOT$PREFIX/info/$1/needs/"*; do
 		if [ ! -h "$need" ]; then
 			break
