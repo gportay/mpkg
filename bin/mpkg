@@ -394,9 +394,6 @@ pkg_remove() {
 	fi
 	pkg_remove_metadata "$pkg"
 
-	# Add the user flag if the package is not required by any other package,
-	# it means it has been installed by the user
-
 	echo "$pkg: Package removed!"
 }
 
