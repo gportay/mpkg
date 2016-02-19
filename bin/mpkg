@@ -389,7 +389,7 @@ pkg_remove() {
 	pkg_remove_data "$pkg" "${ROOT:-/}"
 
 	# Run postrm script if exists,
-	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm configure; then
+	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
 		echo "$pkg: Failed to run postrm!" >&2
 	fi
 	pkg_remove_metadata "$pkg"
