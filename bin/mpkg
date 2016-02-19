@@ -212,6 +212,7 @@ version_latest() {
 
 feed_get_pkg_latest() {
 	local version
+	local feed
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
@@ -255,6 +256,7 @@ feed_get_pkg_uri() {
 
 feed_get_pkg_control() {
 	local control
+	local feed
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
@@ -271,6 +273,7 @@ feed_get_pkg_control() {
 
 feed_get_pkg_md5() {
 	local md5
+	local feed
 	md5=
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
