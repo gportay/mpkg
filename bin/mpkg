@@ -14,7 +14,7 @@ debug() {
 }
 
 verbose() {
-	${VERBOSE:-true} $*
+	${VERBOSE:-true} "$*" >&2
 }
 
 log() {
@@ -90,12 +90,12 @@ pkg_run_script() {
 	shift
 
 	if [ -x "$infodir/$script" ]; then
-		echo -n "${infodir##*/}: Running $script... "
+		verbose -n "${infodir##*/}: Running $script... "
 		if ! ${FORCE:+true} "$infodir/$script" $*; then
-			echo "failed!"
+			verbose "failed!"
 			return 1
 		fi
-		echo "done"
+		verbose "done"
 	fi
 }
 
@@ -321,7 +321,7 @@ pkg_fetch() {
 	local uri
 	uri=$(repo_get_pkg_uri "$pkg" "$version")
 	if [ -z "$uri" ]; then
-		echo "$pkg: Cannot find package in repositories!" >&2
+		verbose "$pkg: Cannot find package in repositories!" >&2
 		return 1
 	fi
 
@@ -339,7 +339,7 @@ pkg_fetch() {
 	echo "$md5  $filename" >"$cachedir/$filename.md5"
 	if [ -e "$cachedir/$filename" ]; then
 		if ( cd "$cachedir/" && ! md5sum --quiet --check "$filename.md5" ); then
-			echo -n "$pkg: Mismatch MD5! "
+			verbose -n "$pkg: Mismatch MD5! "
 			md5sum "$cachedir/$filename" | cut -d' ' -f1
 			rm -f "$cachedir/$filename"*
 			return 1
@@ -372,10 +372,10 @@ pkg_install() {
 		return
 	fi
 
-	echo "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+	debug "$pkg: Installing package${requiredby:+ required by$requiredby}..."
 
 	# Fetching package
-	echo "$pkg: Fetching package..."
+	debug "$pkg: Fetching package..."
 	local file
 	file=$(pkg_fetch "$pkg" "$cachedir" "$ver")
 	if [ -z "$file" ]; then
@@ -383,7 +383,7 @@ pkg_install() {
 	fi
 
 	# Extract package data
-	echo "$pkg: Unarchiving package meta-data..."
+	debug "$pkg: Unarchiving package meta-data..."
 	pkg_extract_metadata "$cachedir/$file" "$tmpdir"
 	install -d "$tmpdir$PREFIX/info/$pkg/needs/"
 	install -d "$tmpdir$PREFIX/info/$pkg/required-by/"
@@ -407,17 +407,17 @@ pkg_install() {
 	if $abort; then
 		local rmdepends
 		local rmdep
-		echo "$pkg: Installation abort due to $dep!"
+		verbose "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
-		echo "$pkg: Auto-removing${rmdepends}dependencies!" >&2
+		verbose "$pkg: Auto-removing${rmdepends}dependencies!" >&2
 		for rmdep in $rmdepends; do
 			if pkg_is_user_installed "$rmdep"; then
-				echo "Warning: Do not auto-remove user-installed package $rmdep! Keep going..." >&2
+				debug "Do not auto-remove user-installed package $rmdep! Keep going..." >&2
 				continue
 			fi
 
 			if ! pkg_remove "$rmdep"; then
-				echo "Warning: Failed to remove package $rmdep! Keep going..." >&2
+				verbose "Warning: Failed to remove package $rmdep! Keep going..." >&2
 			fi
 
 			rm -f "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
@@ -428,12 +428,12 @@ pkg_install() {
 
 	# Run preinst script if exists
 	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
-		echo "$pkg: Failed to run preinst!" >&2
+		verbose "$pkg: Failed to run preinst!" >&2
 		return 1
 	fi
 
 	# Extract whole archive
-	echo "$pkg: Unarchiving package data..."
+	debug "$pkg: Unarchiving package data..."
 	pkg_extract_data "$cachedir/$file" "${ROOT:-/}"
 	install -d "$ROOT$PREFIX/info/"
 	mv "$tmpdir$PREFIX/info/$pkg" "$ROOT$PREFIX/info/"
@@ -442,7 +442,7 @@ pkg_install() {
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
 	if ! pkg_configure "$pkg"; then
-		echo "$pkg: Failed to configure!" >&2
+		verbose "$pkg: Failed to configure!" >&2
 	fi
 
 	# Add the user flag if the package is not required by any other package,
@@ -455,7 +455,10 @@ pkg_install() {
 		ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
 	fi
 
-	echo "$pkg: Package installed!"
+	debug "$pkg: Package installed!"
+
+	pkg_status "$pkg"
+	echo
 }
 
 pkg_remove() {
@@ -464,14 +467,14 @@ pkg_remove() {
 	if ! pkg_status "$pkg" >/dev/null; then
 		return
 	elif pkg_is_locked "$pkg"; then
-		echo "Error: $pkg: Cannot remove package! It is locked." >&2
+		verbose "Error: $pkg: Cannot remove package! It is locked." >&2
 		return 1
 	elif required_by=$(pkg_get_required_by "$pkg"); then
-		echo "Error: $pkg: Cannot remove package! It is required by: $required_by." >&2
+		verbose "Error: $pkg: Cannot remove package! It is required by: $required_by." >&2
 		return 1
 	fi
 
-	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
+	debug "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
 
 	local depends
 	local dep
@@ -484,7 +487,7 @@ pkg_remove() {
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if pkg_is_user_installed "$dep"; then
-			echo "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
+			debug "Warning: Do not auto-remove user-installed package $dep! Keep going..." >&2
 			continue
 		fi
 
@@ -497,21 +500,21 @@ pkg_remove() {
 
 	# Run prerm script if exists
 	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" prerm remove; then
-		echo "$pkg: Failed to run prerm!" >&2
+		verbose "$pkg: Failed to run prerm!" >&2
 		return 1
 	fi
 
 	# Extract whole archive
-	echo "$pkg: Removing package data..."
+	debug "$pkg: Removing package data..."
 	pkg_remove_data "$pkg" "${ROOT:-/}"
 
 	# Run postrm script if exists,
 	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
-		echo "$pkg: Failed to run postrm!" >&2
+		verbose "$pkg: Failed to run postrm!" >&2
 	fi
 	pkg_remove_metadata "$pkg"
 
-	echo "$pkg: Package removed!"
+	debug "$pkg: Package removed!"
 }
 
 do_update() {
@@ -653,7 +656,7 @@ do_install() {
 		ver=$(echo "$pkg" | cut -d_ -f2)
 		ver=${ver#$pkg}
 		if ! ${REDO:-false} && pkg_status "$name" >/dev/null; then
-			echo "$name: Package already installed!"
+			verbose "$name: Package already installed!"
 			if ! pkg_is_user_installed "$name"; then
 				if prompt "Do you want to flag package \"$name\" as user-installed" "[No/yes]"; then
 					pkg_set_user_installed "$name"
@@ -662,12 +665,12 @@ do_install() {
 			continue
 		fi
 
-		echo "Installing package $name..."
+		debug "Installing package $name..."
 		requiredby=
 		if ! pkg_install "$name" "$ver"; then
 			die "Failed to install $name!"
 		fi
-		echo "Package $name installed!"
+		debug "Package $name installed!"
 	done
 }
 
@@ -675,37 +678,37 @@ do_remove() {
 	for pkg in $*; do
 		abort=false
 		if ! pkg_status "$pkg" >/dev/null; then
-			echo "$pkg: Package not installed!"
+			verbose "$pkg: Package not installed!"
 			continue
 		fi
 
-		echo "Removing package $pkg..."
+		debug "Removing package $pkg..."
 		autoremovedby=
 		if ! pkg_remove "$pkg"; then
 			die "Failed to remove $pkg!"
 		fi
-		echo "Package $pkg removed!"
+		debug "Package $pkg removed!"
 	done
 }
 
 do_configure() {
 	for pkg in $*; do
 		if ! pkg_status "$pkg" >/dev/null; then
-			echo "$pkg: Package not installed!"
+			verbose "$pkg: Package not installed!"
 			continue
 		fi
 
 		if pkg_is_configured "$pkg" >/dev/null; then
-			echo "$pkg: Package is already configured!"
+			verbose "$pkg: Package is already configured!"
 			continue
 		fi
 
-		echo "Configuring package $pkg..."
+		debug "Configuring package $pkg..."
 		if ! pkg_configure "$pkg"; then
 			die "Failed to configure $pkg!"
 		fi
 		pkg_set_configured "$pkg"
-		echo "Package $pkg configured!"
+		debug "Package $pkg configured!"
 	done
 }
 
