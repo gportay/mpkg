@@ -249,7 +249,7 @@ feed_get_pkg_uri() {
 		return 1
 	fi
 
-	url=$(grep -E "^${feed##*/} " "$ROOT/etc/mpkg/feeds.conf" | cut -d' ' -f2)
+	url=$(cat "$ROOT/etc/mpkg/repo.d/${feed##*/}")
 	url=${url%/*}
 	echo "$url/$filename"
 }
@@ -501,14 +501,20 @@ pkg_remove() {
 
 do_update() {
 	install -d "$ROOT$PREFIX/lists/"
-	local name
-	local url
-	sed -e '/^#/d' "$ROOT/etc/mpkg/feeds.conf" 2>/dev/null | while read name url; do
+	local feed
+	for feed in "$ROOT/etc/mpkg/repo.d/"*; do
+		if [ ! -e "$feed" ]; then
+			break;
+		fi
+
+		local url
+		url=$(sed -e '/^#/d' "$feed")
 		if [ -z "$url" ]; then
-			echo "Warning: Invalid line \"$name\"!" >&2
 			continue
 		fi
 
+		local name
+		name="${feed##*/}"
 		echo -n "Updating feed $name at $url... "
 		fetch "$url" "$ROOT$PREFIX/lists/$name"
 		md5sum "$ROOT$PREFIX/lists/$name" | cut -d' ' -f1
