@@ -513,6 +513,10 @@ do_update() {
 	done
 }
 
+do_list() {
+	cat $ROOT$PREFIX/lists/* 2>/dev/null
+}
+
 do_list_installed() {
 	local ctrl
 	for ctrl in $ROOT$PREFIX/info/*/control; do
@@ -664,6 +668,7 @@ do_remove() {
 usage() {
 	cat <<EOF
 Usage: ${0##*/} [OPTIONS] update
+       ${0##*/} [OPTIONS] list
        ${0##*/} [OPTIONS] list-installed
        ${0##*/} [OPTIONS] list-outdated
        ${0##*/} [OPTIONS] status PACKAGE...
@@ -717,7 +722,7 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|log"; then
+			if echo "$func" | grep -qE "update|list|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|log"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
@@ -755,6 +760,9 @@ lock "$lockfile"
 case "$func" in
 update)
 	do_update
+	;;
+list)
+	do_list
 	;;
 list-installed)
 	do_list_installed
