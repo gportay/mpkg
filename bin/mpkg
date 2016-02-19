@@ -562,7 +562,7 @@ do_list_installed() {
 			echo "Configure-Required: yes"
 		fi
 		if pkg_is_locked "$pkg"; then
-			echo "Locked: yes"
+			echo "MPKG-Locked: yes"
 		fi
 		local needs
 		if needs=$(pkg_get_needs "$pkg"); then
