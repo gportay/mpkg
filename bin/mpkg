@@ -107,6 +107,18 @@ pkg_status() {
 	fi 2>/dev/null
 }
 
+pkg_is_configured() {
+	! test -e "$ROOT$PREFIX/info/$1/.configure"
+}
+
+pkg_set_configured() {
+	rm -f "$ROOT$PREFIX/info/$1/.configure" >&2
+}
+
+pkg_set_deconfigured() {
+	touch "$ROOT$PREFIX/info/$1/.configure" >&2
+}
+
 pkg_is_user_installed() {
 	test -e "$ROOT$PREFIX/info/$1/.user"
 }
@@ -341,6 +353,13 @@ pkg_fetch() {
 	echo "$filename"
 }
 
+pkg_configure() {
+	if ! pkg_run_script "$ROOT$PREFIX/info/$1" postinst configure; then
+		pkg_set_deconfigured "$1"
+		return 1
+	fi
+}
+
 pkg_install() {
 	local pkg
 	local ver
@@ -422,9 +441,8 @@ pkg_install() {
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
-	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postinst configure; then
-		touch "$ROOT$PREFIX/info/$pkg/.configure"
-		echo "$pkg: Failed to run postinst!" >&2
+	if ! pkg_configure "$pkg"; then
+		echo "$pkg: Failed to configure!" >&2
 	fi
 
 	# Add the user flag if the package is not required by any other package,
@@ -540,7 +558,7 @@ do_list_installed() {
 		if [ -f "${ctrl%/*}/.user" ]; then
 			echo "User-Installed: yes"
 		fi
-		if [ -f "${ctrl%/*}/.configure" ]; then
+		if ! pkg_is_configured "$pkg"; then
 			echo "Configure-Required: yes"
 		fi
 		if pkg_is_locked "$pkg"; then
@@ -673,6 +691,27 @@ do_remove() {
 	done
 }
 
+do_configure() {
+	for pkg in $*; do
+		if ! pkg_status "$pkg" >/dev/null; then
+			echo "$pkg: Package not installed!"
+			continue
+		fi
+
+		if pkg_is_configured "$pkg" >/dev/null; then
+			echo "$pkg: Package is already configured!"
+			continue
+		fi
+
+		echo "Configuring package $pkg..."
+		if ! pkg_configure "$pkg"; then
+			die "Failed to configure $pkg!"
+		fi
+		pkg_set_configured "$pkg"
+		echo "Package $pkg configured!"
+	done
+}
+
 usage() {
 	cat <<EOF
 Usage: ${0##*/} [OPTIONS] update
@@ -683,6 +722,7 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] lock|unlock PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
        ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
+       ${0##*/} [OPTIONS] configure [PACKAGE...]
        ${0##*/} [OPTIONS] log
 
 Options:
@@ -730,7 +770,7 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|log"; then
+			if echo "$func" | grep -qE "update|list|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|configure|log"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
@@ -830,6 +870,13 @@ remove)
 	fi
 
 	do_remove $args
+	;;
+configure)
+	if [ -z "$args" ]; then
+		args="$(find $ROOT$PREFIX/info/ -name '.configure' | sed 's,.*/\(.*\)/.configure,\1,')"
+	fi
+
+	do_configure $args
 	;;
 log)
 	if $CLEAR; then
