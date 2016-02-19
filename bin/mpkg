@@ -555,7 +555,7 @@ do_list_installed() {
 		pkg=${pkg%/control}
 
 		cat "$ctrl"
-		if [ -f "${ctrl%/*}/.user" ]; then
+		if pkg_is_user_installed "$pkg"; then
 			echo "User-Installed: yes"
 		fi
 		if ! pkg_is_configured "$pkg"; then
