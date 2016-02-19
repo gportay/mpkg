@@ -107,6 +107,14 @@ pkg_status() {
 	fi 2>/dev/null
 }
 
+pkg_is_configured() {
+	! test -e "$ROOT$PREFIX/info/$1/.configure"
+}
+
+pkg_set_deconfigured() {
+	touch "$ROOT$PREFIX/info/$1/.configure" >&2
+}
+
 pkg_is_user_installed() {
 	test -e "$ROOT$PREFIX/info/$1/.user"
 }
@@ -343,7 +351,7 @@ pkg_fetch() {
 
 pkg_configure() {
 	if ! pkg_run_script "$ROOT$PREFIX/info/$1" postinst configure; then
-		touch "$ROOT$PREFIX/info/$1/.configure"
+		pkg_set_deconfigured "$1"
 		return 1
 	fi
 }
@@ -546,7 +554,7 @@ do_list_installed() {
 		if [ -f "${ctrl%/*}/.user" ]; then
 			echo "User-Installed: yes"
 		fi
-		if [ -f "${ctrl%/*}/.configure" ]; then
+		if ! pkg_is_configured "$pkg"; then
 			echo "Configure-Required: yes"
 		fi
 		if pkg_is_locked "$pkg"; then
