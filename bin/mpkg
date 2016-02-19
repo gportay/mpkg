@@ -77,7 +77,7 @@ pkg_remove_metadata() {
 
 pkg_remove_data() {
 	cat "$ROOT$PREFIX/info/$1/files" 2>/dev/null | while read f; do
-		echo rm -f "$f"
+		rm -f "$f"
 	done
 }
 
@@ -129,7 +129,7 @@ pkg_unlock() {
 
 pkg_get_needs() {
 	local needs
-	local dep
+	local need
 	for need in "$ROOT$PREFIX/info/$1/needs/"*; do
 		if [ ! -h "$need" ]; then
 			break
@@ -164,7 +164,7 @@ pkg_get_required_by() {
 }
 
 pkg_is_outdated() {
-	local version
+	local val
 	val=$(cat "$ROOT$PREFIX/info/$1/control" | get_value "Version")
 
 	local ref
@@ -212,6 +212,7 @@ version_latest() {
 
 feed_get_pkg_latest() {
 	local version
+	local feed
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
@@ -255,6 +256,7 @@ feed_get_pkg_uri() {
 
 feed_get_pkg_control() {
 	local control
+	local feed
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
@@ -271,7 +273,7 @@ feed_get_pkg_control() {
 
 feed_get_pkg_md5() {
 	local md5
-	md5=
+	local feed
 	for feed in "$ROOT$PREFIX/lists/"*; do
 		if [ ! -f "$feed" ]; then
 			break
