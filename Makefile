@@ -177,11 +177,11 @@ release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 
 .PHONY:: root
 
-root/etc/mpkg/feeds.conf:
+root/etc/mpkg/repo.d/local:
 	install -d $(@D)/
-	echo "local file://$(PWD)/tgz/Index" >$@
+	echo "file://$(PWD)/tgz/Index" >$@
 
-root: root/etc/mpkg/feeds.conf
+root: root/etc/mpkg/repo.d/local
 
 clean:
 	rm -rf tgz/ root/
