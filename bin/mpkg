@@ -341,6 +341,13 @@ pkg_fetch() {
 	echo "$filename"
 }
 
+pkg_configure() {
+	if ! pkg_run_script "$ROOT$PREFIX/info/$1" postinst configure; then
+		touch "$ROOT$PREFIX/info/$1/.configure"
+		return 1
+	fi
+}
+
 pkg_install() {
 	local pkg
 	local ver
@@ -422,9 +429,8 @@ pkg_install() {
 
 	# Run postinst script if exists,
 	# and add the configure flag if the script fails
-	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postinst configure; then
-		touch "$ROOT$PREFIX/info/$pkg/.configure"
-		echo "$pkg: Failed to run postinst!" >&2
+	if ! pkg_configure "$pkg"; then
+		echo "$pkg: Failed to configure!" >&2
 	fi
 
 	# Add the user flag if the package is not required by any other package,
