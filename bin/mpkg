@@ -501,6 +501,8 @@ pkg_remove() {
 
 do_update() {
 	install -d "$ROOT$PREFIX/lists/"
+	local name
+	local url
 	sed -e '/^#/d' "$ROOT/etc/mpkg/feeds.conf" 2>/dev/null | while read name url; do
 		if [ -z "$url" ]; then
 			echo "Warning: Invalid line \"$name\"!" >&2
