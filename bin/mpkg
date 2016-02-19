@@ -111,6 +111,10 @@ pkg_is_configured() {
 	! test -e "$ROOT$PREFIX/info/$1/.configure"
 }
 
+pkg_set_configured() {
+	rm -f "$ROOT$PREFIX/info/$1/.configure" >&2
+}
+
 pkg_set_deconfigured() {
 	touch "$ROOT$PREFIX/info/$1/.configure" >&2
 }
