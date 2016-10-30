@@ -187,3 +187,9 @@ root: root/etc/mpkg/repo.d/local
 clean:
 	rm -rf tgz/ root/
 
+mpkg-$(RELEASE)-bootstrap.sh: bootstrap.sh tgz/mpkg_$(RELEASE).tgz
+	cat $^ >$@
+	chmod a+x $@
+
+.PHONY:: bootstrap
+bootstrap: mpkg-$(RELEASE)-bootstrap.sh
