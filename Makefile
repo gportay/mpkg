@@ -174,3 +174,9 @@ root: root/etc/mpkg/feeds.conf
 clean:
 	rm -rf tgz/ root/
 
+mpkg-$(RELEASE)-bootstrap.sh: bootstrap.sh tgz/mpkg_$(RELEASE).tgz
+	cat $^ >$@
+	chmod a+x $@
+
+.PHONY:: bootstrap
+bootstrap: mpkg-$(RELEASE)-bootstrap.sh
