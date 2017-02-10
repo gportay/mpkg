@@ -1,0 +1,131 @@
+= mpkg(1)
+:doctype: manpage
+:author: Gaël PORTAY
+:email: gael.portay@gmail.com
+:lang: en
+:man manual: mPKG Manual
+:man source: mPKG 0.3
+
+== NAME
+
+mpkg - minimalist package manager
+
+== SYNOPSIS
+
+*mpkg* [OPTIONS] <FUNCTION> [ARGUMENTS...]
+
+== DESCRIPTION
+
+*mpkg(1)* is a *sh(1)* script package manager that keeps an _operating system_
+_up-to-date_ along with _repositories_ of packages.
+
+*mpkg(1)* is a _CLI front-end_ that keeps the _local_ indexes of packages synced
+to _remote_ repositories. It provides a way to _install_, _remove_ and _upgrade_
+packages. Also, it _lists_ every package that is _available_ in every remote
+repository; the packages that are locally _installed_ in the system; and the
+local packages that are _outdated_.
+
+Packages are simple _gzipped tar_ archives; with _metadata_ located in the mPKG
+state directory _/var/lib/mpkg/info_.
+
+== FUNCTIONS
+
+*mpkg [OPTIONS] update*::
+	Synchronize indexes of packages. This operation updates local copies
+	of repository indexes with remote repositories.
+
+*mpkg [OPTIONS] list*::
+	List available packages to stdout. This operation prints information
+	about all packages available in local copies of repository indexes.
+
+*mpkg [OPTIONS] list-installed*::
+	List locally installed packages to stdout. This operation prints
+	information about the locally installed packages and extra additional
+	mPKG metadata (such as the user-installed flag or the configure-required
+	flag).
+
+*mpkg [OPTIONS] list-outdated*::
+	List locally outdated packages to stdout. This operation prints
+	information about the most recent packages of locally outdated packages.
+
+*mpkg [OPTIONS] status PACKAGE...*::
+	Query information about locally installed packages to stdout. This
+	operation succeeds if all packages are locally installed.
+
+*mpkg [OPTIONS] lock|unlock PACKAGE...*::
+	Flag (or unflag) locally installed packages for lock. This operation
+	prevents packages from (or allows for) removal.
+
+*mpkg [OPTIONS] fetch PACKAGE...*::
+	Fetch package archives. This operation downloads the latest version of
+	package archives which are referenced in local copies of repository
+	indexes. Archives are copied to the current directory.
+
+*mpkg [OPTIONS] install|remove|upgrade PACKAGE[_VERSION]...*::
+	Install, remove and upgrade packages. Those operations modify the system
+	by installing and removing packages and their dependencies. When a
+	package is installed, it is flagged as user-installed. Its dependencies
+	are installed first, but they are not flagged as user-installed. When a
+	package is upgraded, its dependencies are not upgraded. When a package
+	is removed, its dependencies that are not flagged as user-installed and
+	that do not depend on any other installed packages are also removed.
+
+*mpkg [OPTIONS] configure [PACKAGE...]*::
+	Configure packages that are not yet configured. This operation re-runs
+	the package post-installation script; the configure-required flag is
+	removed if the post-install script succeed.
+
+*mpkg [OPTIONS] log*::
+	Pring log to stdout. This operation prints the history.
+
+== OPTIONS
+
+*-f or --force*::
+	Force.
+
+*-r or --root DIR*::
+	To set the root directory.
+
+*-v or --verbose*::
+	Turn on verbose messages.
+
+*-D or --debug*::
+	Turn on debug messages.
+
+*-h or --help*::
+	Display this message.
+
+*-V or --version*::
+	Display the version.
+
+*Options for install*
+
+*-u or --update*::
+	To update index first.
+
+*--redo*::
+	Redo.
+
+*Options for log*
+
+*-c or --clear*::
+	Clear logs.
+
+== BUGS
+
+Report bugs at *https://github.com/gazoo74/mpkg/issues*
+
+== AUTHOR
+
+Written by Gaël PORTAY *gael.portay@gmail.com*
+
+== COPYRIGHT
+
+Copyright (c) 2015-2016 Gaël PORTAY
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the MIT License.
+
+== SEE ALSO
+
+*mpkg-build(1)*, *mpkg-deb2tgz(1)*, *mpkg-make-index(1)*

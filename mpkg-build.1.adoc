@@ -1,0 +1,150 @@
+= mpkg-build(1)
+:doctype: manpage
+:author: Gaël PORTAY
+:email: gael.portay@gmail.com
+:lang: en
+:man manual: mPKG Manual
+:man source: mPKG 0.3
+
+== NAME
+
+mpkg-build - build package
+
+== SYNOPSIS
+
+*mpkg-build* [OPTIONS] DIRECTORY...
+
+*mpkg-build* [OPTIONS] --files DIRECTORY...
+
+== DESCRIPTION
+
+*mpkg-build(1)* builds a package from a directory.
+
+The directory is the image of _rootfs_ of the package. It must contain at least
+the *mPKG* _control_ file. This file is located under the *mPKG* info directory
+_var/lib/mpkg/info/<pn>/control_ (where *<pn>* is the name of the package).
+
+The *mPKG* _control_ file is a list of properties; one property per line. This
+file must specify a least the name of the package.
+
+	Package: <pn>
+
+== OPTIONS
+
+*-f or --files*::
+         Print list of files.
+
+*-h or --help*::
+	Display this message.
+
+*-V or --version*::
+	Display the version.
+
+== EXAMPLES
+
+=== META PACKAGE
+
+Create a minimal _meta_ package that installs *mpkg* and *busybox* using the
+dependencies.
+
+	$ mkdir -p meta-root/var/lib/mpkg/info/meta/
+	$ echo Package: meta >meta-root/var/lib/mpkg/info/meta/control
+	$ echo Depends: mpkg busybox >>meta-root/var/lib/mpkg/info/meta/control
+
+Build the _meta_ package using *mpkg-build(1)*.
+
+The package filename is outputted to _stdout_.
+
+	$ mpkg-build meta-root
+	meta_0.tgz
+
+_Note_: Version _0_ is assumed when it not specified in the _control_ file.
+
+Check for the package archive content.
+
+	$ tar tzf meta_0.tgz
+	var/
+	var/lib/
+	var/lib/mpkg/
+	var/lib/mpkg/info/
+	var/lib/mpkg/info/meta/
+	var/lib/mpkg/info/meta/control
+	var/lib/mpkg/info/meta/files
+
+Check for the _list_ file created by *mpkg-build(1)*.
+
+	$ tar Oxzf meta_0.tgz var/lib/mpkg/info/meta/files
+
+_Note_: The _list_ file is empty because the image of the _rootfs_ is empty.
+
+Lets specify the version _2016_ in the _control_ file.
+
+	$ echo Version: 2016 >>meta-root/var/lib/mpkg/info/meta/control
+
+And rebuild the package using *mpkg-build(1)*.
+
+	$ mpkg-build meta-root
+	meta_2016.tgz
+
+The new archive has the version _2016_ in its filename.
+
+=== FILES OPTION
+
+The option _--files_ of *mpkg-build(1)* lists files (exception of metadata); and
+does not build the package.
+
+	$ mkdir -p meta-root/etc/
+	$ echo NAME="Busybox/Linux" >meta-root/etc/os-release
+	$ echo VERSION="2016" >>meta-root/etc/os-release
+
+	$ mpkg-build --files meta-root
+	/etc/os-release
+
+Rebuild the _meta_ package using *mpkg-build(1)*.
+
+	$ mpkg-build meta-root
+	meta_2016.tgz
+
+Check for the package archive content.
+
+	$ tar tzf meta_2016.tgz
+	etc/
+	etc/os-release
+	var/
+	var/lib/
+	var/lib/mpkg/
+	var/lib/mpkg/info/
+	var/lib/mpkg/info/meta/
+	var/lib/mpkg/info/meta/control
+	var/lib/mpkg/info/meta/files
+
+Check for the _list_ file.
+
+	$ tar Oxzf meta_2016.tgz var/lib/mpkg/info/meta/files
+	/etc/os-release
+
+=== FAKEROOT
+
+Build the _meta_ package using _root_ ownership thanks to *fakeroot(1)*.
+
+	$ fakeroot -- mpkg-build meta-root
+	meta_2016.tgz
+
+== BUGS
+
+Report bugs at *https://github.com/gazoo74/mpkg/issues*
+
+== AUTHOR
+
+Written by Gaël PORTAY *gael.portay@gmail.com*
+
+== COPYRIGHT
+
+Copyright (c) 2015-2016 Gaël PORTAY
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the MIT License.
+
+== SEE ALSO
+
+*mpkg(1)*, *mpkg-deb2tgz(1)*, *mpkg-make-index(1)*
