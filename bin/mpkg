@@ -45,7 +45,7 @@ download() {
 }
 
 fetch() {
-	install -d ${2%/*}/
+	install -d "${2%/*}/"
 	if echo "$1" | grep -qE '^file://'; then
 		cp "${1##*://}" "$2"
 	else
@@ -81,7 +81,7 @@ pkg_run_script() {
 
 	if [ -x "$infodir/$script" ]; then
 		echo -n "${infodir##*/}: Running $script... "
-		if ! ${FORCE:+true} "$infodir/$script" $*; then
+		if ! ${FORCE:+true} "$infodir/$script" "$@"; then
 			echo "failed!"
 			return 1
 		fi
@@ -444,7 +444,7 @@ do_list_installed() {
 }
 
 do_status() {
-	for pkg in $*; do
+	for pkg in "$@"; do
 		if pkg_status "$pkg"; then
 			echo
 		fi
@@ -452,7 +452,7 @@ do_status() {
 }
 
 do_fetch() {
-	for pkg in $*; do
+	for pkg in "$@"; do
 		echo "Fetching package $pkg..."
 		pkg_fetch "$pkg" ./
 	done
@@ -460,7 +460,7 @@ do_fetch() {
 
 do_install() {
 	install -d "$tmpdir$PREFIX/"
-	for pkg in $*; do
+	for pkg in "$@"; do
 		abort=false
 		name=$(echo "$pkg" | cut -d_ -f1)
 		ver=$(echo "$pkg" | cut -d_ -f2)
@@ -480,7 +480,7 @@ do_install() {
 }
 
 do_remove() {
-	for pkg in $*; do
+	for pkg in "$@"; do
 		abort=false
 		if ! pkg_status "$pkg" >/dev/null; then
 			echo "$pkg: Package not installed!"
@@ -556,13 +556,13 @@ parse_arguments() {
 	done
 }
 
-parse_arguments $*
+parse_arguments "$@"
 
 lockfile=$ROOT/var/run/mpkg/.lock
 cachedir=$ROOT/var/cache/mpkg
 tmpdir=$(mktemp -d "$ROOT/tmp/${0##*/}-XXXXXX" 2>/dev/null || echo "$ROOT/tmp/${0##*/}-$$")
 DO_CLEANUP="rm -Rf $tmpdir"
-trap cleanup 0 SIGINT
+trap cleanup 0 INT
 
 if [ -e "$lockfile" ]; then
 	die "Only one single instance should run at a time!"
