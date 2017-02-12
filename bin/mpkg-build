@@ -39,12 +39,12 @@ package_tgz() {
 	tgz=${pn}_${pv}.tgz
 
 	files "$tgzdir" >"$tgzdir$PREFIX/info/$pn/files"
-	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" * )
+	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" -- * )
 	echo "$tgz"
 }
 
 do_files() {
-	files ${1:-.}
+	files "${1:-.}"
 }
 
 usage() {
@@ -78,7 +78,7 @@ parse_arguments() {
 	done
 }
 
-parse_arguments $*
+parse_arguments "$@"
 
 if [ -z "$args" ]; then
 	usage >&2
