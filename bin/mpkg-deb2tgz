@@ -62,7 +62,7 @@ package_tgz() {
 	tgz=${pn}_${pv}.tgz
 
 	files "$tgzdir" >"$tgzdir$PREFIX/info/$pn/files"
-	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" * )
+	( cd "$tgzdir/" && tar czf "$OLDPWD/$tgz" --exclude="$1" -- * )
 	echo "$tgz"
 }
 
@@ -79,7 +79,7 @@ do_deb2tgz() {
 	if ! $EXTRACT_ONLY; then
 		if ! $FILES; then
 			package_tgz "$tmpdir"
-			rm -rf "$tmpdir/"
+			rm -rf "${tmpdir}:?/"
 		else
 			do_list "$tmpdir"
 		fi
@@ -121,7 +121,7 @@ parse_arguments() {
 	done
 }
 
-parse_arguments $*
+parse_arguments "$@"
 
 if [ -z "$args" ]; then
 	usage >&2
