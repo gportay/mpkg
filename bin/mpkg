@@ -1,9 +1,11 @@
-#!/bin/sh -e
+#!/bin/sh
 #
-# Copyright 2015-2016 Gaël PORTAY <gael.portay@gmail.com>
+# Copyright 2015-2017 Gaël PORTAY <gael.portay@gmail.com>
 #
 # Licensed under the MIT license.
 #
+
+set -e
 
 PREFIX=/var/lib/mpkg
 VERSION=0.1.1
