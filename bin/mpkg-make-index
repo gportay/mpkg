@@ -39,8 +39,6 @@ EOF
 }
 
 parse_arguments() {
-	FILES=false
-
 	while [ $# -ne 0 ]; do
 		if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 			usage
@@ -65,7 +63,7 @@ parse_arguments() {
 	done
 }
 
-parse_arguments $*
+parse_arguments "$@"
 
 for tgz in ${dir:-./}*.tgz; do
 	control "$tgz" | sed -e '/^$/d'
