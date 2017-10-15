@@ -15,6 +15,10 @@ error() {
 	echo -e "\e[31;1;4mERROR:\e[0m \e[31m$*\e[0m" >&2
 }
 
+warning() {
+	echo -e "\e[31;1;4mWARNING:\e[0m \e[31m$*\e[0m" >&2
+}
+
 debug() {
 	${DEBUG:-true} "\e[33;1;4mDEBUG:\e[0m \e[33m$*\e[0m" >&2
 }
@@ -363,7 +367,7 @@ pkg_fetch() {
 	local uri
 	uri=$(repo_get_pkg_uri "$pkg" "$version")
 	if [ -z "$uri" ]; then
-		verbose "$pkg: Cannot find package in repositories!"
+		error "$pkg: Cannot find package in repositories!"
 		return 1
 	fi
 
@@ -459,7 +463,7 @@ pkg_install() {
 			fi
 
 			if ! pkg_remove "$rmdep"; then
-				verbose "Warning: Failed to remove package $rmdep! Keep going..."
+				warning "Failed to remove package $rmdep! Keep going..."
 			fi
 
 			rm -f "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
@@ -470,7 +474,7 @@ pkg_install() {
 
 	# Run preinst script if exists
 	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
-		verbose "$pkg: Failed to run preinst!"
+		error "$pkg: Failed to run preinst!"
 		return 1
 	fi
 
@@ -529,7 +533,7 @@ pkg_remove() {
 	for dep in $depends; do
 		autoremovedby="$autoremovedby $pkg"
 		if pkg_is_user_installed "$dep"; then
-			debug "Warning: Do not auto-remove user-installed package $dep! Keep going..."
+			warning "Do not auto-remove user-installed package $dep! Keep going..."
 			continue
 		fi
 
@@ -542,7 +546,7 @@ pkg_remove() {
 
 	# Run prerm script if exists
 	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" prerm remove; then
-		verbose "$pkg: Failed to run prerm!"
+		warning "$pkg: Failed to run prerm!"
 		return 1
 	fi
 
@@ -552,7 +556,7 @@ pkg_remove() {
 
 	# Run postrm script if exists,
 	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
-		verbose "$pkg: Failed to run postrm!"
+		warning "$pkg: Failed to run postrm!"
 	fi
 	pkg_remove_metadata "$pkg"
 
