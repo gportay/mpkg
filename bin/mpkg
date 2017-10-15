@@ -456,6 +456,13 @@ pkg_install() {
 		verbose "$pkg: Installation abort due to $dep!"
 		rmdepends=" $depends "
 		verbose "$pkg: Auto-removing${rmdepends}dependencies!"
+
+		# Remove required-by symlink to unlock for removal
+		for dep in $rmdepends; do
+			rm -f "$ROOT$PREFIX/info/$dep/required-by/$pkg"
+		done
+
+		# Removing auto-installed dependencies
 		for rmdep in $rmdepends; do
 			if pkg_is_user_installed "$rmdep"; then
 				debug "Do not auto-remove user-installed package $rmdep! Keep going..."
@@ -497,6 +504,7 @@ pkg_install() {
 		pkg_set_user_installed "$pkg"
 	fi
 
+	# Add required-by symlink to lock for removal
 	if [ -n "${requiredby##* }" ]; then
 		ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
 	fi
