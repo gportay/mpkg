@@ -275,6 +275,12 @@ pkg_install() {
 	install -d "$tmpdir$PREFIX/info/$pkg/needs/"
 	install -d "$tmpdir$PREFIX/info/$pkg/required-by/"
 
+	# Run preinst script if exists
+	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
+		echo "$pkg: Failed to run preinst!" >&2
+		return 1
+	fi
+
 	# Install missing dependencies
 	local depends
 	local dep
@@ -317,12 +323,6 @@ pkg_install() {
 			rm -f "$tmpdir$PREFIX/info/$pkg/needs/$rmdep"
 		done
 
-		return 1
-	fi
-
-	# Run preinst script if exists
-	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
-		echo "$pkg: Failed to run preinst!" >&2
 		return 1
 	fi
 
