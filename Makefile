@@ -177,7 +177,7 @@ shellcheck:
 
 .PHONY:: tests
 tests:
-	cd tests && ./run.sh
+	$(MAKE) -C tests
 
 clean:
 	rm -rf tgz/ root/

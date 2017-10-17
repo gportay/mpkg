@@ -1,0 +1,10 @@
+root-y		:= a
+pkg-m		:= a b
+a-deps		:= b
+
+include list-installed.mk files.mk
+
+file-y += $(user-y)
+file-y += $(a-1-m)
+file-y += $(b-1-m)
+

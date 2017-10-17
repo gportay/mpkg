@@ -1,0 +1,14 @@
+/etc/mpkg/feeds.conf
+/var/lib/mpkg/info/a/control
+/var/lib/mpkg/info/a/files
+/var/lib/mpkg/info/a/preinst
+/var/lib/mpkg/info/a/.user
+/var/lib/mpkg/info/b/control
+/var/lib/mpkg/info/b/files
+/var/lib/mpkg/info/b/preinst
+/var/lib/mpkg/info/b/.user
+/var/lib/mpkg/info/c/control
+/var/lib/mpkg/info/c/files
+/var/lib/mpkg/info/d/control
+/var/lib/mpkg/info/d/files
+/var/lib/mpkg/lists/local
