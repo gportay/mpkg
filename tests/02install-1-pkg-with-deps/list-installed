@@ -1,0 +1,8 @@
+Package: a
+Version: 1
+Depends: b
+User-Installed: yes
+
+Package: b
+Version: 1
+

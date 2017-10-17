@@ -178,10 +178,8 @@ release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 
 .PHONY:: root
 
-root/etc/mpkg/repo.d:
-	install -d $@
-
-root/etc/mpkg/repo.d/local: | root/etc/mpkg/repo.d
+root/etc/mpkg/repo.d/local:
+	install -d $(@D)/
 	echo "file://$(PWD)/tgz/Index" >$@
 
 root: root/etc/mpkg/repo.d/local
@@ -192,7 +190,7 @@ shellcheck:
 
 .PHONY:: tests
 tests:
-	cd tests && ./run.sh
+	$(MAKE) -C tests
 
 clean:
 	rm -rf tgz/ root/
