@@ -1,8 +1,4 @@
 Package: a
-Version: 2
-Depends: b
-User-Installed: yes
-
-Package: b
 Version: 1
+User-Installed: yes
 

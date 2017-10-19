@@ -19,6 +19,16 @@ check-remove-list-installed: $(O)remove-list-installed.out mpkg-remove
 	echo "done"
 	echo
 
+.PHONY: check-remove-list-outdated
+check-remove-list-outdated: $(O)remove-list-outdated.out mpkg-remove
+	echo -n "Checking list-outdated after remove... "
+	mpkg $(MPKGOPTS) $(MPKGOPTS_list-outdated) $(EXTRA_MPKGOPTS) list-outdated | \
+	sed -n -e '/^\(Package\|Version\)/p' \
+	       -e '/^$$/p' | \
+	diff - $<
+	echo "done"
+	echo
+
 .PHONY: check-remove-files
 check-remove-files: $(O)remove-files.out
 	echo -n "Checking files after remove... "
