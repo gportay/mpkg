@@ -1,0 +1,15 @@
+root-y		:= a b
+pkg-m		:= a b c d
+a-deps		:= c
+a-preinst	:= true
+b-deps		:= d
+b-preinst	:= false
+
+MPKGEXIT_install	 = true
+
+include list-installed.mk files.mk
+
+file-y += $(user-y)
+file-y += $(a-1-m)
+file-y += $(c-1-m)
+

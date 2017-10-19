@@ -1,0 +1,39 @@
+#
+# Copyright 2017 Gaël PORTAY <gael.portay@gmail.com>
+#
+# Licensed under the MIT license.
+#
+
+MAKEFLAGS += -rR
+
+.SILENT: all
+.PHONY: all
+all:
+
+.SILENT: check
+.PHONY: check
+check:
+
+PATH	:= $(PWD)/../bin:$(PATH)
+O	?= $(shell echo "${TMPDIR:-/tmp}/mpkg-$$$$")
+ROOTDIR	 = $(O)root
+TGZDIR	 = $(O)tgz
+
+.SILENT: $(O)
+.PHONY: $(O)
+$(O):
+	mkdir -p $@
+
+feed := local
+local-uri := file://$(TGZDIR)/Index
+$(ROOTDIR)/etc/mpkg/feeds.conf: $(TGZDIR)/Index
+
+.SILENT: Testfile
+Testfile:
+	$(error No targets specified and no Testfile found)
+
+-include Testfile mpkg.mk
+
+all: check
+	rm -Rf $(O)
+
