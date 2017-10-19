@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# Copyright 2017 Gaël PORTAY <gael.portay@gmail.com>
+#
+# Licensed under the MIT license.
+#
+
+set -e
+
+DATADIR="${DATADIR:-$PWD}"
+
+tmpdir="$(mktemp -d ${TMPDIR:-/tmp}/${0##*/}-XXXXXX)"
+trap 'rm -Rf "$tmpdir"' 0
+
+make "O=$tmpdir/" \
+     "-I$DATADIR" \
+     "-f$DATADIR/Maketest" \
+     "--no-print-directory" \
+     "$@"

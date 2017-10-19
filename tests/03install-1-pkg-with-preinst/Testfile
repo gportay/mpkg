@@ -1,0 +1,9 @@
+root-y		:= a
+pkg-m		:= a
+a-preinst	:= true
+
+include list-installed.mk files.mk
+
+file-y += $(user-y)
+file-y += $(a-1-m)
+

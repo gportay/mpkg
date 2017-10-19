@@ -1,0 +1,8 @@
+Package: a
+Version: 1
+Depends: c
+User-Installed: yes
+
+Package: c
+Version: 1
+

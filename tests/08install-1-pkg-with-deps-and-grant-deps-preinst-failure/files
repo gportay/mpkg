@@ -1,0 +1,2 @@
+/etc/mpkg/repo.d/local.conf
+/var/lib/mpkg/lists/local.conf

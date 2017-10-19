@@ -1,0 +1,10 @@
+root-y		:= a
+pkg-m		:= a
+a-postinst	:= false
+
+include list-installed.mk files.mk
+
+file-y += $(user-y)
+file-y += $(a-1-m)
+file-y += /var/lib/mpkg/info/a/.configure
+
