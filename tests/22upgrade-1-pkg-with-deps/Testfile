@@ -1,0 +1,14 @@
+rootfs-y	:= a_1
+rootfs-n	:= a
+pkg-m		:= a b
+a-vers		:= 1 2
+a-1-bin		:= a-1.sh
+a-2-bin		:= a-2.sh
+a-2-deps	:= b
+
+upgrade-y	:= a
+
+include upgrade.mk
+check-upgrade: check-upgrade-files
+check-upgrade: check-upgrade-list-installed
+check-upgrade: check-upgrade-list-outdated

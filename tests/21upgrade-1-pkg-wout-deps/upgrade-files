@@ -1,4 +1,5 @@
 /etc/mpkg/repo.d/local.conf
+/usr/bin/a-2.sh
 /var/lib/mpkg/info/a/control
 /var/lib/mpkg/info/a/files
 /var/lib/mpkg/info/a/.user
