@@ -11,7 +11,7 @@ all: tests
 
 .PHONY: tests
 tests:
-	./run.sh -s
+	./run.sh $(MFLAGS)
 
 .PHONY: install
 install:
