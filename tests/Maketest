@@ -14,6 +14,10 @@ all:
 .PHONY: check
 check:
 
+.SILENT: clean
+.PHONY: clean
+clean:
+
 PATH	:= $(PWD)/../bin:$(PATH)
 O	?= $(shell echo "${TMPDIR:-/tmp}/mpkg-$$$$")
 ROOTDIR	 = $(O)root
@@ -34,6 +38,6 @@ Testfile:
 
 -include Testfile mpkg.mk
 
-all: check
-	rm -Rf $(O)
+all: check clean
+	rmdir $(O)
 
