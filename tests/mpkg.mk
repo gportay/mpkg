@@ -30,6 +30,10 @@ MPKGEXIT_list-installed	?= false
 MPKGEXIT_install	?= false
 MPKGARGS_install	 = $(install-y)
 
+remove-y		?= $(install-y)
+MPKGEXIT_remove		?= false
+MPKGARGS_remove		 = $(remove-y)
+
 .PHONY: FORCE
 FORCE:
 
@@ -54,7 +58,7 @@ mpkg_rootfs: $(repo-y) FORCE | $(ROOTDIR)
 	echo
 endif
 
-.SILENT: mpkg-install
+.SILENT: mpkg-install mpkg-remove
 mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 	if ! bash mpkg $(MPKGOPTS) $(MPKGOPTS_$*) $(EXTRA_MPKGOPTS) $* $(MPKGARGS_$*) \
 	   && ! $(MPKGEXIT_$*); then \
@@ -67,7 +71,7 @@ mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 mpkg_clean:
 	rm -Rf $(ROOTDIR)/ $(O)*.out
 
-rootfs-n ?= $(rootfs-y) $(install-y)
+rootfs-n ?= $(filter-out $(remove-y),$(rootfs-y) $(install-y))
 ifneq (,$(rootfs-n))
 .PHONY: mpkg_rootfs_clean
 mpkg_rootfs_clean: | $(ROOTDIR)
