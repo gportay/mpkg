@@ -1,7 +1,7 @@
 root-y		:= a b
 pkg-m		:= a b
 
-include list-installed.mk files.mk
+include install.mk files.mk
 
 file-y += $(user-y)
 file-y += $(a-1-m)

@@ -4,5 +4,5 @@ a-preinst	:= false
 
 MPKGEXIT_install	 = true
 
-include list-installed.mk files.mk
+include install.mk files.mk
 

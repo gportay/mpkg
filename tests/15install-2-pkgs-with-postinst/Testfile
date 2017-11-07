@@ -5,7 +5,7 @@ a-postinst	:= true
 b-deps		:= d
 b-postinst	:= true
 
-include list-installed.mk files.mk
+include install.mk files.mk
 
 file-y += $(user-y)
 file-y += $(a-1-m)

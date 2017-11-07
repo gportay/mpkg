@@ -3,7 +3,7 @@ pkg-m		:= a b c d
 a-deps		:= c
 b-deps		:= d
 
-include list-installed.mk files.mk
+include install.mk files.mk
 
 file-y += $(user-y)
 file-y += $(a-1-m)
