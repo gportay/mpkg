@@ -68,6 +68,7 @@ mpkg_clean:
 	rm -Rf $(ROOTDIR)/ $(O)*.out
 
 clean-y ?= $(rootfs-y) $(install-y)
+ifneq (,$(clean-y))
 .PHONY: mpkg_rootfs_clean
 mpkg_rootfs_clean: | $(ROOTDIR)
 	echo -n "Cleaning up $(clean-y)... "
@@ -81,6 +82,7 @@ mpkg_rootfs_clean: | $(ROOTDIR)
 	echo
 
 mpkg_clean: mpkg_rootfs_clean
+endif
 
 define do_user =
 ifneq (false,$($(1)-preinst))
