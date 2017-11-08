@@ -389,7 +389,7 @@ pkg_remove() {
 	done
 
 	# Run prerm script if exists
-	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" prerm remove; then
+	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" prerm remove; then
 		echo "$pkg: Failed to run prerm!" >&2
 		return 1
 	fi
