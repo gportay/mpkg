@@ -1,6 +1,7 @@
-root-y		:= a
 pkg-m		:= a
 a-preinst	:= false
+
+install-y	:= a
 
 MPKGEXIT_install	 = true
 

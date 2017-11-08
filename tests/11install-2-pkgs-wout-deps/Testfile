@@ -1,5 +1,6 @@
-root-y		:= a b
 pkg-m		:= a b
+
+install-y	:= a b
 
 include install.mk
 check-install: check-install-files

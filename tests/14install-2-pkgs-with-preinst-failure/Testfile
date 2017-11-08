@@ -1,9 +1,10 @@
-root-y		:= a b
 pkg-m		:= a b c d
 a-deps		:= c
 a-preinst	:= true
 b-deps		:= d
 b-preinst	:= false
+
+install-y	:= a b
 
 MPKGEXIT_install	 = true
 
