@@ -6,7 +6,8 @@ d-preinst	:= false
 
 MPKGEXIT_install	 = true
 
-include list-installed.mk files.mk
+include install.mk
+check-install: check-install-files
 
 file-y += /var/lib/mpkg/info/a/.user
 file-y += $(a-1-m)

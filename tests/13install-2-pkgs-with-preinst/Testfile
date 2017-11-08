@@ -5,7 +5,8 @@ a-preinst	:= true
 b-deps		:= d
 b-preinst	:= true
 
-include list-installed.mk files.mk
+include install.mk
+check-install: check-install-files
 
 file-y += $(user-y)
 file-y += $(a-1-m)
