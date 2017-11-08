@@ -364,6 +364,12 @@ pkg_remove() {
 		return 1
 	fi
 
+	# Run prerm script if exists
+	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" prerm remove; then
+		echo "$pkg: Failed to run prerm!" >&2
+		return 1
+	fi
+
 	echo "$pkg: Removing package${autoremovedby:+ auto-removed by$autoremovedby}..."
 
 	local depends
@@ -387,12 +393,6 @@ pkg_remove() {
 		fi
 		autoremovedby="${autoremovedby% *}"
 	done
-
-	# Run prerm script if exists
-	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" prerm remove; then
-		echo "$pkg: Failed to run prerm!" >&2
-		return 1
-	fi
 
 	# Extract whole archive
 	echo "$pkg: Removing package data..."
