@@ -1,7 +1,8 @@
-root-y		:= a
 pkg-m		:= a b
 a-2-deps	:= b
 a-vers		:= 1 2
+
+install-y	:= a
 
 include install.mk
 check-install: check-install-files

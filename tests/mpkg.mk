@@ -29,7 +29,7 @@ $(foreach repo,$(repo),$(eval $(call do_repo,$(repo))))
 MPKGEXIT_list-installed	?= false
 MPKGEXIT_install	?= false
 MPKGOPTS_install	 = --update
-MPKGARGS_install	 = $(root-y)
+MPKGARGS_install	 = $(install-y)
 
 .PHONY:
 FORCE:
@@ -43,7 +43,7 @@ mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 		false; \
 	fi
 
-clean-y ?= $(root-y)
+clean-y ?= $(install-y)
 .PHONY: mpkg_clean
 mpkg_clean: tgz_clean | $(ROOTDIR)
 	echo -n "Cleaning up $(clean-y)... "

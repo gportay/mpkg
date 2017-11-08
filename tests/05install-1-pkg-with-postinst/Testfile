@@ -1,6 +1,7 @@
-root-y		:= a
 pkg-m		:= a
 a-postinst	:= true
+
+install-y	:= a
 
 include install.mk
 check-install: check-install-files

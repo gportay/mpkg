@@ -1,9 +1,10 @@
-root-y		:= a b
 pkg-m		:= a b c d
 a-deps		:= c
 a-preinst	:= true
 b-deps		:= d
 b-preinst	:= true
+
+install-y	:= a b
 
 include install.mk
 check-install: check-install-files
