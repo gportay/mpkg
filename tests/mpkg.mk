@@ -63,9 +63,13 @@ mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 		false; \
 	fi
 
-clean-y ?= $(rootfs-y) $(install-y)
 .PHONY: mpkg_clean
-mpkg_clean: tgz_clean | $(ROOTDIR)
+mpkg_clean:
+	rm -Rf $(ROOTDIR)/ $(O)*.out
+
+clean-y ?= $(rootfs-y) $(install-y)
+.PHONY: mpkg_rootfs_clean
+mpkg_rootfs_clean: | $(ROOTDIR)
 	echo -n "Cleaning up $(clean-y)... "
 	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) --force remove $(clean-y); then \
 		echo "Error: command has failed!" >&2; \
@@ -75,7 +79,8 @@ mpkg_clean: tgz_clean | $(ROOTDIR)
 	diff - /dev/null
 	echo "done"
 	echo
-	rm -Rf $(ROOTDIR)/ $(O)*.out
+
+mpkg_clean: mpkg_rootfs_clean
 
 define do_user =
 ifneq (false,$($(1)-preinst))
