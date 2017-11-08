@@ -67,12 +67,12 @@ mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 mpkg_clean:
 	rm -Rf $(ROOTDIR)/ $(O)*.out
 
-clean-y ?= $(rootfs-y) $(install-y)
-ifneq (,$(clean-y))
+rootfs-n ?= $(rootfs-y) $(install-y)
+ifneq (,$(rootfs-n))
 .PHONY: mpkg_rootfs_clean
 mpkg_rootfs_clean: | $(ROOTDIR)
-	echo -n "Cleaning up $(clean-y)... "
-	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) --force remove $(clean-y); then \
+	echo -n "Cleaning up $(rootfs-n)... "
+	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) --force remove $(rootfs-n); then \
 		echo "Error: command has failed!" >&2; \
 		false; \
 	fi
