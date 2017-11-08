@@ -38,6 +38,6 @@ Testfile:
 
 -include Testfile mpkg.mk
 
-all: check clean
+all: rootfs check clean
 	rmdir $(O)
 
