@@ -25,7 +25,7 @@ MPKGEXIT_list-installed	?= false
 MPKGEXIT_install	?= false
 MPKGARGS_install	 = $(install-y)
 
-.PHONY:
+.PHONY: FORCE
 FORCE:
 
 rootfs: mpkg_rootfs
