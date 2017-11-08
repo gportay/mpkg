@@ -63,3 +63,9 @@ $(foreach pkg,$(root-y),$(eval $(call do_user,$(pkg))))
 .PHONY: clean
 clean: mpkg_clean
 
+$(O)%-files.out: %-files | $(O)
+	sort $< >$@
+
+$(O)%.out: % | $(O)
+	cp $< $@
+
