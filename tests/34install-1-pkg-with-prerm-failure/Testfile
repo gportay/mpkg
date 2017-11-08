@@ -1,0 +1,12 @@
+rootfs-y	:= a
+rootfs-n	:= a
+pkg-m		:= a
+a-prerm		:= false
+
+remove-y	:= a
+
+MPKGEXIT_remove	 = true
+
+include remove.mk
+check-remove: check-remove-files
+

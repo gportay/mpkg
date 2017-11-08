@@ -1,0 +1,5 @@
+/etc/mpkg/feeds.conf
+/var/lib/mpkg/info/c/control
+/var/lib/mpkg/info/c/files
+/var/lib/mpkg/info/c/prerm
+/var/lib/mpkg/lists/local
