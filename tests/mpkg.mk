@@ -47,7 +47,7 @@ clean-y ?= $(install-y)
 .PHONY: mpkg_clean
 mpkg_clean: tgz_clean | $(ROOTDIR)
 	echo -n "Cleaning up $(clean-y)... "
-	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) remove $(clean-y); then \
+	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) --force remove $(clean-y); then \
 		echo "Error: command has failed!" >&2; \
 		false; \
 	fi
