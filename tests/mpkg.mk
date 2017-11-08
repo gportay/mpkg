@@ -23,11 +23,31 @@ file-y	+= $(PREFIX)/lists/$(feed)
 
 MPKGEXIT_list-installed	?= false
 MPKGEXIT_install	?= false
-MPKGOPTS_install	 = --update
 MPKGARGS_install	 = $(install-y)
 
 .PHONY:
 FORCE:
+
+rootfs: mpkg_rootfs
+ifneq (,$(rootfs-y))
+mpkg_rootfs: $(ROOTDIR)/etc/mpkg/feeds.conf FORCE | $(ROOTDIR)
+	echo -n "Initialize $(rootfs-y)... "
+	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) --update install $(rootfs-y); then \
+		echo "Error: command has failed!" >&2; \
+		false; \
+	fi
+	echo "done"
+	echo
+else
+mpkg_rootfs: $(ROOTDIR)/etc/mpkg/feeds.conf FORCE | $(ROOTDIR)
+	echo -n "Initialize (empty)... "
+	if ! bash mpkg $(MPKGOPTS) $(EXTRA_MPKGOPTS) update; then \
+		echo "Error: command has failed!" >&2; \
+		false; \
+	fi
+	echo "done"
+	echo
+endif
 
 .SILENT: mpkg-install
 mpkg-%: $(ROOTDIR)/etc/mpkg/feeds.conf | $(ROOTDIR)
@@ -38,7 +58,7 @@ mpkg-%: $(ROOTDIR)/etc/mpkg/feeds.conf | $(ROOTDIR)
 		false; \
 	fi
 
-clean-y ?= $(install-y)
+clean-y ?= $(rootfs-y) $(install-y)
 .PHONY: mpkg_clean
 mpkg_clean: tgz_clean | $(ROOTDIR)
 	echo -n "Cleaning up $(clean-y)... "
