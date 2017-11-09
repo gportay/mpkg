@@ -409,8 +409,11 @@ pkg_configure() {
 pkg_install() {
 	local pkg
 	local ver
+	local oldver
+	local arg
 	pkg=$1
 	ver=$2
+	arg="install"
 	if ! ${REDO:-false} && pkg_status "$pkg" "$ver" >/dev/null; then
 		if [ -n "${requiredby##* }" ]; then
 			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
@@ -418,7 +421,20 @@ pkg_install() {
 		return
 	fi
 
-	debug "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+	# Upgrading package
+	if [ -d "$ROOT$PREFIX/info/$pkg/" ]; then
+		arg="upgrade"
+		oldver="$(cat "$ROOT$PREFIX/info/$pkg/control" | get_value 'Version')"
+		debug "$pkg: Upgrading package from $oldver to $ver${requiredby:+ required by$requiredby}..."
+
+		# Run prerm script if exists
+		if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" prerm "$arg" "$ver"; then
+			error "$pkg: Failed to run prerm!"
+			return 1
+		fi
+	else
+		debug "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+	fi
 
 	# Fetching package
 	debug "$pkg: Fetching package..."
@@ -435,7 +451,7 @@ pkg_install() {
 	install -d "$tmpdir$PREFIX/info/$pkg/required-by/"
 
 	# Run preinst script if exists
-	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
+	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst "$arg" "$oldver"; then
 		error "$pkg: Failed to run preinst!"
 		return 1
 	fi
