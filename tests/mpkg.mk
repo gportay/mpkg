@@ -18,9 +18,6 @@ $(ROOTDIR) $(ROOTDIR)/etc/mpkg:
 $(ROOTDIR)/etc/mpkg/feeds.conf: | $(ROOTDIR)/etc/mpkg
 	echo "$(feed) $($(feed)-uri)" >$@
 
-file-y	+= /etc/mpkg/feeds.conf
-file-y	+= $(PREFIX)/lists/$(feed)
-
 MPKGEXIT_list-installed	?= false
 MPKGEXIT_install	?= false
 MPKGARGS_install	 = $(install-y)
@@ -82,14 +79,6 @@ mpkg_rootfs_clean: | $(ROOTDIR)
 
 mpkg_clean: mpkg_rootfs_clean
 endif
-
-define do_user =
-ifneq (false,$($(1)-preinst))
-user-y += $(PREFIX)/info/$(1)/.user
-endif
-endef
-
-$(foreach pkg,$(root-y),$(eval $(call do_user,$(pkg))))
 
 .PHONY: clean
 clean: mpkg_clean

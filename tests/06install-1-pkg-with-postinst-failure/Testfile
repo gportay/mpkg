@@ -6,7 +6,3 @@ install-y	:= a
 include install.mk
 check-install: check-install-files
 
-file-y += $(user-y)
-file-y += $(a-1-m)
-file-y += /var/lib/mpkg/info/a/.configure
-
