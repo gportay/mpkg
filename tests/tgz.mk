@@ -48,7 +48,7 @@ $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3):
 	chmod a+x $$@
 	echo "$(3): $$($(1)-$(3))" | sed 's/^.\| [a-z]/XXX-\U&/'
 
-$(1)-$(2)-script-y += $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3)
+$(TGZDIR)/$(1)_$(2).tgz: $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3)
 endif
 endef
 
@@ -73,7 +73,7 @@ $(foreach bin,$($(1)-bin),$(eval $(call do_install_file,$(1),$(2),$(bindir),$(bi
 
 tgzdir-m  += $(TGZDIR)/$(1)_$(2)
 
-$(TGZDIR)/$(1)_$(2).tgz: $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control $($(1)-$(2)-script-y)
+$(TGZDIR)/$(1)_$(2).tgz: $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control
 endef
 
 define do_pkg =
