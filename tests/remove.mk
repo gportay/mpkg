@@ -13,7 +13,7 @@ check-remove: check-remove-list-installed
 .PHONY: check-remove-list-installed
 check-remove-list-installed: $(O)remove-list-installed.out mpkg-remove
 	echo -n "Checking list-installed after remove... "
-	mpkg $(MPKGOPTS) $(MPKGOPTS_list-installed) $(EXTRA_MPKGOPTS) list-installed | \
+	bash mpkg $(MPKGOPTS) $(MPKGOPTS_list-installed) $(EXTRA_MPKGOPTS) list-installed | \
 	sed -e '/^MPKG-/d' | \
 	diff - $<
 	echo "done"
