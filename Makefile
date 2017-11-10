@@ -190,7 +190,7 @@ shellcheck:
 
 .PHONY: tests
 tests:
-	$(MAKE) -C tests $(MFLAGS)
+	$(MAKE) -C tests --silent $(MFLAGS)
 
 clean:
 	rm -rf tgz/ root/
