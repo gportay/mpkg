@@ -89,7 +89,7 @@ $(TGZDIR):
 	install -d $@
 
 $(TGZDIR)/%.tgz: | $(TGZDIR)
-	@( cd $(@D)/ && mpkg-build $* )
+	@( cd $(@D)/ && fakeroot -- mpkg-build $* )
 
 .SILENT: $(TGZDIR)/Index
 $(TGZDIR)/Index: $(tgz-m) | $(TGZDIR)
