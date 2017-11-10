@@ -12,98 +12,18 @@ EXTRAVERSION	 =
 NAME		 = I am not an Hero!
 RELEASE		 = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
 
-PATH		:= $(PWD)/bin:$(PATH)
-sysconfdir	:= /etc
-localstatedir	:= /var
-
-PREFIX		?= /usr/local
-EPREFIX		?= $(PREFIX)
-bindir		?= $(EPREFIX)/bin
-sbindir		?= $(EPREFIX)/sbin
-libexecdir	?= $(EPREFIX)/libexec
-sysconfdir	?= $(PREFIX)/etc
-sharedstatedir	?= $(PREFIX)/com
-localstatedir	?= $(PREFIX)/var
-libdir		?= $(EPREFIX)/lib
-includedir	?= $(PREFIX)/include
-oldincludedir	?= /usr/include
-datarootdir	?= $(PREFIX)/share
-datadir		?= $(datarootdir)
-infodir		?= $(datarootdir)
-localedir	?= $(datarootdir)/locale
-mandir		?= $(datarootdir)/man
-docdir		?= $(datarootdir)/doc/mpkg
-htmldir		?= $(datarootdir)
-dvidir		?= $(datarootdir)
-pdfdir		?= $(datarootdir)
-psdir		?= $(datarootdir)
-
-pkg-m		:= mpkg mpkg-tools
-mpkg-dir	:= $(sysconfdir)/mpkg/repos.d $(localstatedir)/lib/mpkg/lists
-mpkg-sbin	:= bin/mpkg
-mpkg-tools-bin	:= bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
+export RELEASE
 
 .SILENT: all
 .PHONY: all
 all:
 
-define do_install =
-.SILENT: tgz/$(1)_$(2)/$(3)
-tgz/$(1)_$(2)/$(3): $(3)
-	install -d $$(@D)
-	install -m 755 $$< $$(@D)
-	chmod a+x $$@
-
-$(1)-$(2)-bin-y += tgz/$(1)_$(2)/$(3)
-endef
-
-define do_install_dir =
-tgz/$(1)_$(2)/$(3):
-	echo "Doing $$@..."
-	install -m 644 -d $$@
-
-$(1)-$(2)-dir-y += tgz/$(1)_$(2)/$(3)
-endef
-
-define do_pkg_info =
-.SILENT: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
-tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
-	install -d $$(@D)
-	echo "Package: $(1)" >$$@
-	echo "Version: $(2)" >>$$@
-	echo
-	cat $$@
-
-$(1)-$(2)-info-y += tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
-endef
-
-define do_pkg =
-$(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(RELEASE),$(dir))))
-$(foreach bin,$($(1)-sbin),$(eval $(call do_install,$(1),$(RELEASE),$(bin))))
-$(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(RELEASE),$(bin))))
-$(eval $(call do_pkg_info,$(1),$(RELEASE)))
-
-pkgdirs-m  += tgz/$(1)_$(RELEASE)
-tgz/$(1)_$(RELEASE).tgz: $($(1)-$(RELEASE)-info-y) $($(1)-$(RELEASE)-bin-y) $($(1)-$(RELEASE)-dir-y)
-endef
-
-$(foreach pkg,$(pkg-m),$(eval $(call do_pkg,$(pkg))))
-
-tgz-m := $(patsubst %,%.tgz,$(pkgdirs-m))
-
-tgz/%.tgz:
-	( cd $(@D)/ && fakeroot -- mpkg-build $* )
-
-tgz/Index: $(tgz-m)
-	( cd $(@D)/ && mpkg-make-index ) >$@
-	cat $@
-
-all: tgz/Index
-
 .SILENT: version
 .PHONY: version
 version:
 	echo "$(RELEASE)"
+
+include dir.mk
 
 .SECONDARY: mpkg_rsa.pem mpkg_rsa.pub
 
@@ -161,19 +81,18 @@ tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
 sign: tgz/Index.sig $(tgzsig-m)
 
 .PHONY: release
-release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
+release: export TGZDIR=tgz/
+release:
+	$(MAKE) dist
+	$(MAKE) sign
 	install -d releases/$(RELEASE)/
-	for f in $?; do \
+	for f in tgz/Index tgz/*.tgz tgz/*.sig; do \
 		cp $$f releases/$(RELEASE)/; \
 	done
 
-
-root/etc/mpkg/feeds.conf:
-	install -d $(@D)/
-	echo "local file://$(PWD)/tgz/Index" >$@
-
-.PHONY: root
-root: root/etc/mpkg/feeds.conf
+.PHONY: dist
+dist:
+	$(MAKE) -f $@.mk
 
 .PHONY: shellcheck
 shellcheck:
@@ -186,7 +105,8 @@ tests:
 
 .PHONY: clean
 clean:
-	rm -rf tgz/ root/
+	$(MAKE) -f dist.mk $@
+	rm -rf tgz/
 
 mpkg-$(RELEASE)-bootstrap.sh: bootstrap.sh tgz/mpkg_$(RELEASE).tgz
 	cat $^ >$@
