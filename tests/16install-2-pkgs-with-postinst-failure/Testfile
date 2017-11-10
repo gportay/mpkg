@@ -9,10 +9,3 @@ install-y	:= a b
 include install.mk
 check-install: check-install-files
 
-file-y += $(user-y)
-file-y += $(a-1-m)
-file-y += $(b-1-m)
-file-y += $(c-1-m)
-file-y += $(d-1-m)
-file-y += /var/lib/mpkg/info/b/.configure
-

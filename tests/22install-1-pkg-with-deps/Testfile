@@ -7,7 +7,3 @@ install-y	:= a
 include install.mk
 check-install: check-install-files
 
-file-y += $(user-y)
-file-y += $(a-2-m)
-file-y += $(b-1-m)
-
