@@ -8,7 +8,7 @@
 set -e
 
 run() {
-	local __id=$((id+1))
+	__id=$((__id+1))
 	__test="#$__id: $@"
 	echo -e "\e[1mRunning $__test...\e[0m"
 }
