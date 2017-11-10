@@ -16,8 +16,7 @@ pkg-m		+= $($(1)-deps)
 endif
 endef
 
-$(foreach pkg,$(root-y) $(root-m),$(eval $(call do_pkg_run_deps,$(pkg))))
-pkg-m		+= $(root-y) $(root-m)
+$(foreach pkg,$(pkg-m),$(eval $(call do_pkg_run_deps,$(pkg))))
 pkg-m		:= $(sort $(pkg-m))
 
 define do_pkg_script =
