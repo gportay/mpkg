@@ -40,15 +40,11 @@ endef
 
 define do_pkg_script =
 ifneq (,$($(1)-$(3)))
-.SILENT: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3)
-$(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3):
-	install -d $$(@D)
-	echo "#!/bin/sh" >$$@
-	echo "$$($(1)-$(3))" >>$$@
-	chmod a+x $$@
-	echo "$(3): $$($(1)-$(3))" | sed 's/^.\| [a-z]/XXX-\U&/'
+.SILENT: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3))
+$(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3)): $($(1)-$(3))
+	install -D -m 755 $$< $$@
 
-$(TGZDIR)$(1)_$(2).tgz: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(3)
+$(TGZDIR)$(1)_$(2).tgz: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3))
 endif
 endef
 
