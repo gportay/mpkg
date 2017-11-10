@@ -66,6 +66,7 @@ $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control:
 	echo
 	cat $$@
 
+.SILENT: $(TGZDIR)/$(1)_$(2).tgz
 $(TGZDIR)/$(1)_$(2).tgz: $(TGZDIR)/$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control
 
 $(foreach script,preinst postinst prerm postrm,$(eval $(call do_pkg_script,$(1),$(2),$(script))))
@@ -89,7 +90,7 @@ $(TGZDIR):
 	install -d $@
 
 $(TGZDIR)/%.tgz: | $(TGZDIR)
-	@( cd $(@D)/ && fakeroot -- mpkg-build $* )
+	( cd $(@D)/ && fakeroot -- mpkg-build $* )
 
 .SILENT: $(TGZDIR)/Index
 $(TGZDIR)/Index: $(tgz-m) | $(TGZDIR)
