@@ -43,14 +43,12 @@ mpkg-dir	:= $(sysconfdir)/mpkg/repos.d $(localstatedir)/lib/mpkg/lists
 mpkg-sbin	:= bin/mpkg
 mpkg-tools-bin	:= bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 
-all::
-
-.PHONY:: all
-
-.SILENT:: all version
+.SILENT: all
+.PHONY: all
+all:
 
 define do_install =
-.SILENT:: tgz/$(1)_$(2)/$(3)
+.SILENT: tgz/$(1)_$(2)/$(3)
 tgz/$(1)_$(2)/$(3): $(3)
 	install -d $$(@D)
 	install -m 755 $$< $$(@D)
@@ -68,7 +66,7 @@ $(1)-$(2)-dir-y += tgz/$(1)_$(2)/$(3)
 endef
 
 define do_pkg_info =
-.SILENT:: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
+.SILENT: tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control
 tgz/$(1)_$(2)$(localstatedir)/lib/mpkg/info/$(1)/control:
 	install -d $$(@D)
 	echo "Package: $(1)" >$$@
@@ -86,7 +84,7 @@ $(foreach bin,$($(1)-bin),$(eval $(call do_install,$(1),$(RELEASE),$(bin))))
 $(eval $(call do_pkg_info,$(1),$(RELEASE)))
 
 pkgdirs-m  += tgz/$(1)_$(RELEASE)
-tgz/$(1)_$(RELEASE).tgz:: $($(1)-$(RELEASE)-info-y) $($(1)-$(RELEASE)-bin-y) $($(1)-$(RELEASE)-dir-y)
+tgz/$(1)_$(RELEASE).tgz: $($(1)-$(RELEASE)-info-y) $($(1)-$(RELEASE)-bin-y) $($(1)-$(RELEASE)-dir-y)
 endef
 
 $(foreach pkg,$(pkg-m),$(eval $(call do_pkg,$(pkg))))
@@ -100,12 +98,14 @@ tgz/Index: $(tgz-m)
 	( cd $(@D)/ && mpkg-make-index ) >$@
 	cat $@
 
-all:: tgz/Index
+all: tgz/Index
 
+.SILENT: version
+.PHONY: version
 version:
 	echo "$(RELEASE)"
 
-.SECONDARY:: mpkg_rsa.pem mpkg_rsa.pub
+.SECONDARY: mpkg_rsa.pem mpkg_rsa.pub
 
 keys: mpkg_rsa.pem mpkg_rsa.pub
 
@@ -126,7 +126,7 @@ endif
 		install --owner root --group mpkg --mode 0640 $$key $(datarootdir)/mpkg/keys.d/; \
 	done
 
-.SILENT:: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem
+.SILENT: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem
 $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
 	@echo "Error: $(@F): Private key is missing!" >&2
 	@echo "       Either copy your private key into $(CURDIR)/$(@F)," >&2
@@ -163,19 +163,19 @@ release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 		cp $$f releases/$(RELEASE)/; \
 	done
 
-.PHONY:: root
 
 root/etc/mpkg/feeds.conf:
 	install -d $(@D)/
 	echo "local file://$(PWD)/tgz/Index" >$@
 
+.PHONY: root
 root: root/etc/mpkg/feeds.conf
 
 shellcheck:
 	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 	shellcheck bin/mpkg -s bash -e SC2162 -e SC2002 -e SC2086
 
-.PHONY:: tests
+.PHONY: tests
 tests:
 	$(MAKE) -C tests $(MFLAGS)
 
@@ -186,5 +186,5 @@ mpkg-$(RELEASE)-bootstrap.sh: bootstrap.sh tgz/mpkg_$(RELEASE).tgz
 	cat $^ >$@
 	chmod a+x $@
 
-.PHONY:: bootstrap
+.PHONY: bootstrap
 bootstrap: mpkg-$(RELEASE)-bootstrap.sh
