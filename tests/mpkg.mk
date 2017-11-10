@@ -10,7 +10,7 @@ MPKGOPTS	:= --root $(ROOTDIR)
 include tgz.mk
 
 repo		?= local
-local-uri	?= file://$(TGZDIR)/Index
+local-uri	?= file://$(TGZDIR)Index
 
 $(ROOTDIR) $(ROOTDIR)/etc/mpkg/repo.d:
 	mkdir -p $@
