@@ -13,7 +13,7 @@ check-install: check-install-list-installed
 .PHONY: check-install-list-installed
 check-install-list-installed: $(O)install-list-installed.out mpkg-install
 	echo -n "Checking list-installed after install... "
-	mpkg $(MPKGOPTS) $(MPKGOPTS_list-installed) $(EXTRA_MPKGOPTS) list-installed | \
+	bash mpkg $(MPKGOPTS) $(MPKGOPTS_list-installed) $(EXTRA_MPKGOPTS) list-installed | \
 	sed -e '/^MPKG-/d' | \
 	diff - $<
 	echo "done"
