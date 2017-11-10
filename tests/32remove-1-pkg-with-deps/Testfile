@@ -1,0 +1,13 @@
+rootfs-y	:= a
+pkg-m		:= a b
+a-deps		:= b
+
+remove-y	:= a
+
+include remove.mk
+check-remove: check-remove-files
+
+file-y += $(user-y)
+file-y += $(a-1-m)
+file-y += $(b-1-m)
+
