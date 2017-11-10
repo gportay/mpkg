@@ -107,8 +107,10 @@ version:
 
 .SECONDARY: mpkg_rsa.pem mpkg_rsa.pub
 
+.PHONY: keys
 keys: mpkg_rsa.pem mpkg_rsa.pub
 
+.PHONY: setup
 setup:
 ifeq (,$(findstring $(USER),$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g')))
 	groupadd --force --system mpkg
@@ -117,6 +119,7 @@ else
 	@echo "Your are already a member or mpkg group!"
 endif
 
+.PHONY: install-keys
 install-keys: mpkg_rsa.pem
 ifeq (,$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g'))
 	make setup
@@ -157,6 +160,7 @@ tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
 
 sign: tgz/Index.sig $(tgzsig-m)
 
+.PHONY: release
 release: $(wildcard tgz/Index*) $(tgz-y) $(tgzsig-y)
 	install -d releases/$(RELEASE)/
 	for f in $?; do \
@@ -171,6 +175,7 @@ root/etc/mpkg/feeds.conf:
 .PHONY: root
 root: root/etc/mpkg/feeds.conf
 
+.PHONY: shellcheck
 shellcheck:
 	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 	shellcheck bin/mpkg -s bash -e SC2162 -e SC2002 -e SC2086
@@ -179,6 +184,7 @@ shellcheck:
 tests:
 	$(MAKE) -C tests --silent $(MFLAGS)
 
+.PHONY: clean
 clean:
 	rm -rf tgz/ root/
 

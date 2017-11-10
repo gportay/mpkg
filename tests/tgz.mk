@@ -9,6 +9,9 @@ PREFIX	:= /var/lib/mpkg
 .PHONY: all
 all:
 
+.PHONY: clean
+clean:
+
 define do_pkg_run_deps
 ifneq (,$($(1)-deps))
 $(foreach pkg,$($(1)-deps),$(eval $(call do_pkg_run_deps,$(pkg))))
