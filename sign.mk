@@ -39,7 +39,7 @@ endif
 .SILENT: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem
 $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
 	echo "Error: $(@F): Private key is missing!" >&2
-	echo "       Either copy your private key into $(CURDIR)/$(@F)," >&2
+	echo "       Either copy your private key into $(@)," >&2
 	echo "       or generate your private key using $$ $(MAKE) -f$(MAKEFILE_LIST) $(@F)," >&2
 	echo "       then install it using $$ sudo $(MAKE) -f$(MAKEFILE_LIST) install-keys" >&2
 	false
