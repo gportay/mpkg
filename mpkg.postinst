@@ -1,9 +1,11 @@
-#!/bin/sh -e
+#!/bin/sh
 #
-# Copyright 2016 Gaël PORTAY <gael.portay@gmail.com>
+# Copyright 2016-2017 Gaël PORTAY <gael.portay@gmail.com>
 #
 # Licensed under the MIT license.
 #
+
+set -e
 
 mkdir -p $ROOT/etc/mpkg/repo.d/
 while [ "$(ls -1 $ROOT/etc/mpkg/repo.d/ | wc -l)" -eq 0 ]; do
