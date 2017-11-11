@@ -41,10 +41,11 @@ dist sign:
 verify:
 	$(MAKE) -f sign.mk $@
 
-.PHONY: shellcheck
-shellcheck:
+.PHONY: check shellcheck
+check shellcheck:
 	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
 	shellcheck bin/mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
+	shellcheck mpkg.postinst
 
 .PHONY: tests
 tests:
