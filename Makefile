@@ -37,6 +37,10 @@ release:
 dist sign:
 	$(MAKE) -f $@.mk
 
+.PHONY: verify
+verify:
+	$(MAKE) -f sign.mk $@
+
 .PHONY: shellcheck
 shellcheck:
 	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
