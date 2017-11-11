@@ -63,11 +63,13 @@ tgz-y := $(wildcard $(TGZDIR)*.tgz)
 
 tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
 
+.PHONY: sign
 sign: $(TGZDIR)Index.sig $(tgzsig-m)
 
 .PHONY: verify
 verify: verify-Index $(patsubst %.sig,verify-%,$(tgzsig-m))
 
+.PHONY: sign_clean
 sign_clean:
 	rm -Rf $(TGZDIR)Index.sig $(tgzsig-m)
 
