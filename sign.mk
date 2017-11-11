@@ -65,6 +65,9 @@ tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
 
 sign: $(TGZDIR)Index.sig $(tgzsig-m)
 
+.PHONY: verify
+verify: verify-Index $(patsubst %.sig,verify-%,$(tgzsig-m))
+
 sign_clean:
 	rm -Rf $(TGZDIR)Index.sig $(tgzsig-m)
 
