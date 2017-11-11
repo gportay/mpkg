@@ -29,7 +29,7 @@ endif
 .PHONY: install-keys
 install-keys: mpkg_rsa.pem
 ifeq (,$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g'))
-	make setup
+	$(MAKE) setup
 endif
 	install --owner root --group mpkg --directory $(DESTDIR)$(datarootdir)/mpkg/keys.d/
 	for key in $?; do \
@@ -40,8 +40,8 @@ endif
 $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
 	echo "Error: $(@F): Private key is missing!" >&2
 	echo "       Either copy your private key into $(CURDIR)/$(@F)," >&2
-	echo "       or generate your private key using $$ make -f sign.mk $(@F)," >&2
-	echo "       then install it using $$ sudo make -f sign.mk install-keys" >&2
+	echo "       or generate your private key using $$ $(MAKE) -f$(MAKEFILE_LIST) $(@F)," >&2
+	echo "       then install it using $$ sudo $(MAKE) -f$(MAKEFILE_LIST) install-keys" >&2
 	false
 
 %.pem:
