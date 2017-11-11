@@ -31,9 +31,9 @@ install-keys: mpkg_rsa.pem
 ifeq (,$(shell grep -E "^mpkg:" /etc/group | cut -d: -f4 | sed 's/,/ /g'))
 	make setup
 endif
-	install --owner root --group mpkg --directory $(datarootdir)/mpkg/keys.d/
+	install --owner root --group mpkg --directory $(DESTDIR)$(datarootdir)/mpkg/keys.d/
 	for key in $?; do \
-		install --owner root --group mpkg --mode 0640 $$key $(datarootdir)/mpkg/keys.d/; \
+		install --owner root --group mpkg --mode 0640 $$key $(DESTDIR)$(datarootdir)/mpkg/keys.d/; \
 	done
 
 .SILENT: $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem
