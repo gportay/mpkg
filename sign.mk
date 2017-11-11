@@ -59,9 +59,9 @@ $(datarootdir)/mpkg/keys.d/mpkg_rsa.pem:
 verify-%: mpkg_rsa.pub %.sig
 	openssl dgst -sha1 -verify $< -signature $*.sig $*
 
-tgz-y := $(wildcard $(TGZDIR)*.tgz)
+tgz-m := $(wildcard $(TGZDIR)*.tgz)
 
-tgzsig-m := $(patsubst %,%.sig,$(tgz-y))
+tgzsig-m := $(patsubst %,%.sig,$(tgz-m))
 
 .PHONY: sign
 sign: $(TGZDIR)Index.sig $(tgzsig-m)
