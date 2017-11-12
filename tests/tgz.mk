@@ -72,9 +72,9 @@ $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control:
 $(TGZDIR)$(1)_$(2).tgz: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/control
 
 $(foreach script,preinst postinst prerm postrm,$(eval $(call do_pkg_script,$(1),$(2),$(script))))
-$(foreach dir,$($(1)-dir),$(eval $(call do_install_dir,$(1),$(2),$(dir))))
-$(foreach bin,$($(1)-sbin),$(eval $(call do_install_file,$(1),$(2),$(sbindir),$(bin))))
-$(foreach bin,$($(1)-bin),$(eval $(call do_install_file,$(1),$(2),$(bindir),$(bin))))
+$(foreach dir,$(if $($(1)-$(2)-dir),$($(1)-$(2)-dir),$($(1)-dir)),$(eval $(call do_install_dir,$(1),$(2),$(dir))))
+$(foreach bin,$(if $($(1)-$(2)-sbin),$($(1)-$(2)-sbin),$($(1)-sbin)),$(eval $(call do_install_file,$(1),$(2),$(sbindir),$(bin))))
+$(foreach bin,$(if $($(1)-$(2)-bin),$($(1)-$(2)-bin),$($(1)-bin)),$(eval $(call do_install_file,$(1),$(2),$(bindir),$(bin))))
 
 tgzdir-m  += $(TGZDIR)$(1)_$(2)
 endef
