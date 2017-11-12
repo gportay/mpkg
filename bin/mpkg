@@ -560,7 +560,7 @@ pkg_remove() {
 
 	# Extract whole archive
 	debug "$pkg: Removing package data..."
-	pkg_remove_data "$pkg" "${ROOT:-/}"
+	pkg_remove_data "$pkg"
 
 	# Run postrm script if exists,
 	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
