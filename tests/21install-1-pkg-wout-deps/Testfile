@@ -1,5 +1,7 @@
 pkg-m		:= a
 a-vers		:= 1 2
+a-1-bin		:= a-1.sh
+a-2-bin		:= a-2.sh
 
 install-y	:= a
 
