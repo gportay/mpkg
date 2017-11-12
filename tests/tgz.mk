@@ -39,7 +39,13 @@ $(TGZDIR)$(1)_$(2).tgz: $(TGZDIR)$(1)_$(2)/$(3)
 endef
 
 define do_pkg_script =
-ifneq (,$($(1)-$(3)))
+ifneq (,$($(1)-$(2)-$(3)))
+.SILENT: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3))
+$(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3)): $($(1)-$(2)-$(3))
+	install -D -m 755 $$< $$@
+
+$(TGZDIR)$(1)_$(2).tgz: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3))
+else ifneq (,$($(1)-$(3)))
 .SILENT: $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3))
 $(TGZDIR)$(1)_$(2)$(LOCALSTATEDIR)/info/$(1)/$(notdir $(3)): $($(1)-$(3))
 	install -D -m 755 $$< $$@
