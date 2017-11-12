@@ -1,7 +1,10 @@
 rootfs-y	:= a
 pkg-m		:= a b c
+a-bin		:= a.sh
 a-deps		:= b c
+b-bin		:= b.sh
 b-prerm		:= false
+c-bin		:= c.sh
 
 remove-y	:= a
 

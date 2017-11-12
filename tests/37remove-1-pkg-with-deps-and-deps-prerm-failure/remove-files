@@ -1,7 +1,9 @@
 /etc/mpkg/feeds.conf
+/usr/bin/b.sh
 /var/lib/mpkg/info/b/control
 /var/lib/mpkg/info/b/files
 /var/lib/mpkg/info/b/prerm
+/usr/bin/c.sh
 /var/lib/mpkg/info/c/control
 /var/lib/mpkg/info/c/files
 /var/lib/mpkg/lists/local

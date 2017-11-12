@@ -1,4 +1,5 @@
 pkg-m		:= a
+a-bin		:= a.sh
 
 install-y	:= a
 
