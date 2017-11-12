@@ -86,7 +86,7 @@ pkg_remove_metadata() {
 }
 
 pkg_remove_data() {
-	cat "$ROOT$PREFIX/info/$1/files" 2>/dev/null | while read f; do
+	comm -2 "$1" "${2:-/dev/null}" 2>/dev/null | while read f; do
 		rm -f "$ROOT$f"
 	done
 }
@@ -604,7 +604,7 @@ pkg_remove() {
 
 	# Removing files
 	debug "$pkg: Removing package data..."
-	pkg_remove_data "$pkg"
+	pkg_remove_data "$ROOT$PREFIX/info/$pkg/files"
 
 	# Run postrm script if exists,
 	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
