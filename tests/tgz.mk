@@ -4,6 +4,8 @@
 # Licensed under the MIT license.
 #
 
+bindir		?= /usr/bin
+sbindir		?= /usr/sbin
 LOCALSTATEDIR	?= /var/lib/mpkg
 
 .PHONY: all
