@@ -532,8 +532,29 @@ pkg_install() {
 	# Extract whole archive
 	debug "$pkg: Unarchiving package data..."
 	pkg_extract_data "$cachedir/$file" "${ROOT:-/}"
-	install -d "$ROOT$PREFIX/info/$pkg"
-	mv "$tmpdir$PREFIX/info/$pkg/"* "$ROOT$PREFIX/info/$pkg"
+
+	# Upgrading package
+	if [ -d "$ROOT$PREFIX/info/$pkg/" ]; then
+		# Run postrm script if exists
+		if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm "$arg" "$ver"; then
+			warning "$pkg: Failed to run postrm!"
+		fi
+
+		# Removing orphan files
+		pkg_remove_data "$ROOT$PREFIX/info/$pkg/files" "$tmpdir$PREFIX/info/$pkg/files"
+		mv "$ROOT$PREFIX/info/$pkg/" "$ROOT$PREFIX/info/.$pkg/"
+	fi
+
+	# Installing files
+	install -d "$ROOT$PREFIX/info/"
+	mv "$tmpdir$PREFIX/info/$pkg/" "$ROOT$PREFIX/info/"
+	if [ -d "$ROOT$PREFIX/info/.$pkg/" ]; then
+		for f in .user .configure .lock; do
+			[ -e "$ROOT$PREFIX/info/.$pkg/$f" ] || continue
+			mv -f "$ROOT$PREFIX/info/.$pkg/$f" "$ROOT$PREFIX/info/$pkg/"
+		done
+		rm -Rf "$ROOT$PREFIX/info/.$pkg/"
+	fi
 	rm "$cachedir/$file"*
 
 	# Run postinst script if exists,
