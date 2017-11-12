@@ -394,7 +394,7 @@ pkg_remove() {
 		autoremovedby="${autoremovedby% *}"
 	done
 
-	# Extract whole archive
+	# Removing files
 	echo "$pkg: Removing package data..."
 	pkg_remove_data "$pkg"
 
