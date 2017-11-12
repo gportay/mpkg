@@ -1,8 +1,12 @@
 pkg-m		:= a b c d
+a-bin		:= a.sh
 a-deps		:= c
 a-preinst	:= true
+b-bin		:= b.sh
 b-deps		:= d
 b-preinst	:= false
+c-bin		:= c.sh
+d-bin		:= d.sh
 
 install-y	:= a b
 

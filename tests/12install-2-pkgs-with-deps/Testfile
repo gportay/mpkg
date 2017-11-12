@@ -1,6 +1,10 @@
 pkg-m		:= a b c d
+a-bin		:= a.sh
 a-deps		:= c
+b-bin		:= b.sh
 b-deps		:= d
+c-bin		:= c.sh
+d-bin		:= d.sh
 
 install-y	:= a b
 

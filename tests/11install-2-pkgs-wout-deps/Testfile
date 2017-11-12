@@ -1,4 +1,6 @@
 pkg-m		:= a b
+a-bin		:= a.sh
+b-bin		:= b.sh
 
 install-y	:= a b
 

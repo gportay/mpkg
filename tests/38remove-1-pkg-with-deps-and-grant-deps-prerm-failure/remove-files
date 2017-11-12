@@ -1,4 +1,5 @@
 /etc/mpkg/repo.d/local.conf
+/usr/bin/c.sh
 /var/lib/mpkg/info/c/control
 /var/lib/mpkg/info/c/files
 /var/lib/mpkg/info/c/prerm

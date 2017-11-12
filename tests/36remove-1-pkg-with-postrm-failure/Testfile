@@ -1,5 +1,6 @@
 rootfs-y	:= a
 pkg-m		:= a
+a-bin		:= a.sh
 a-postrm	:= false
 
 remove-y	:= a

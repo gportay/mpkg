@@ -95,6 +95,15 @@ $(O)%-files.out: %-files | $(O)
 $(O)%.out: % | $(O)
 	cp $< $@
 
+%.sh:
+	install -d $(@D)
+	echo "#!/bin/sh" >$@
+	echo "# Automatically generated script: remove me" >>$@
+	echo "# mpkg $(RELEASE) maketest" >>$@
+	echo "# $(shell date)" >>$@
+	echo "echo $(@F)" >>$@
+	chmod a+x $@
+
 .SILENT: true false
 true false:
 	install -d $(@D)
