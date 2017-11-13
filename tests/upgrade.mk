@@ -11,7 +11,7 @@ check: check-upgrade
 check-upgrade: check-upgrade-list-installed
 
 .PHONY: check-upgrade-list-installed
-check-upgrade-list-installed: $(O)upgrade-list-installed.out mpkg-upgrade
+check-upgrade-list-installed: $(O)upgrade-list-installed.out | mpkg-upgrade
 	echo -n "Checking list-installed after upgrade... "
 	bash mpkg $(MPKGOPTS) $(MPKGOPTS_list-installed) $(EXTRA_MPKGOPTS) list-installed | \
 	sed -e '/^MPKG-/d' | \
@@ -20,7 +20,7 @@ check-upgrade-list-installed: $(O)upgrade-list-installed.out mpkg-upgrade
 	echo
 
 .PHONY: check-upgrade-list-outdated
-check-upgrade-list-outdated: $(O)upgrade-list-outdated.out mpkg-upgrade
+check-upgrade-list-outdated: $(O)upgrade-list-outdated.out | mpkg-upgrade
 	echo -n "Checking list-outdated after upgrade... "
 	bash mpkg $(MPKGOPTS) $(MPKGOPTS_list-outdated) $(EXTRA_MPKGOPTS) list-outdated | \
 	sed -n -e '/^\(Package\|Version\)/p' \
@@ -29,8 +29,10 @@ check-upgrade-list-outdated: $(O)upgrade-list-outdated.out mpkg-upgrade
 	echo "done"
 	echo
 
+check-upgrade-list-outdated: check-upgrade-list-installed
+
 .PHONY: check-upgrade-files
-check-upgrade-files: $(O)upgrade-files.out
+check-upgrade-files: $(O)upgrade-files.out | mpkg-upgrade
 	echo -n "Checking files after upgrade... "
 	find $(ROOTDIR)/ -type f | \
 	sed -e "s,^$(ROOTDIR),," -e "\:/var/cache/mpkg/:d" | sort | \
