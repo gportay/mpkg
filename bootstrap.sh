@@ -8,7 +8,7 @@
 set -e
 
 # Install required directories
-mkdir -p "/etc/mpkg/repo.d/" "/var/lib/mpkg/info/mpkg/"
+mkdir -p "/etc/mpkg/" "/var/lib/mpkg/info/mpkg/"
 touch "/var/lib/mpkg/info/mpkg/.user"
 
 # Self-extract archive

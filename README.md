@@ -138,10 +138,10 @@ and copy it somewhere in your `$PATH`.
 	# wget https://raw.githubusercontent.com/gazoo74/mpkg/master/bin/mpkg
 	# chmod +x mpkg
 
-*mPKG* needs at least a *repository feed* in `/etc/mpkg/repo.d/` directory.
+*mPKG* needs at least a *repository feed* in `/etc/mpkg/feeds.conf` file.
 
-	# mkdir -p /etc/mpkg/repo.d/
-	# echo "http://tgz.me/Index" >/etc/mpkg/repo.d/me
+	# mkdir -p /etc/mpkg/
+	# echo "me http://tgz.me/Index" >/etc/mpkg/feeds.conf
 
 ## AUTHOR
 
