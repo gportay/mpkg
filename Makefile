@@ -51,6 +51,10 @@ check shellcheck:
 tests:
 	$(MAKE) -C tests --silent $(MFLAGS)
 
+.PHONY: github-pages
+github-pages:
+	$(MAKE) -f github-pages.mk
+
 .PHONY: clean
 clean:
 	$(MAKE) -f sign.mk $@
