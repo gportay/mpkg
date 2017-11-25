@@ -14,7 +14,12 @@ all: tests
 .PHONY: $(SRC)
 .SILENT: $(SRC)
 $(SRC):
-	./maketest "-C$(@D)"
+	if ! ./maketest "-C$(@D)"; then \
+		echo -e "\e[1m$(@D): \e[31m[KO]\e[0m"; \
+		false; \
+	else \
+		echo -e "\e[1m$(@D): \e[32m[OK]\e[0m"; \
+	fi
 
 .PHONY: tests
 tests:
