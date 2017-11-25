@@ -66,6 +66,7 @@ parse_arguments() {
 parse_arguments "$@"
 
 for tgz in ${dir:-./}*.tgz; do
+	[ -e "$tgz" ] || continue
 	control "$tgz" | sed -e '/^$/d'
 	echo ""
 done
