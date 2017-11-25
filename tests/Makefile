@@ -12,6 +12,7 @@ SRC	:= $(sort $(SRC))
 all: tests
 
 .PHONY: $(SRC)
+.SILENT: $(SRC)
 $(SRC):
 	./maketest "-C$(@D)"
 
