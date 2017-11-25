@@ -69,6 +69,7 @@ clean:
 	$(MAKE) -C tests $@
 	$(MAKE) -f sign.mk $@
 	$(MAKE) -f dist.mk $@
+	$(MAKE) -f github-pages.mk $@
 	rm -rf tgz/
 
 mpkg-$(RELEASE)-bootstrap.sh: bootstrap.sh tgz/mpkg_$(RELEASE).tgz
