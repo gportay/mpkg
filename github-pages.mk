@@ -33,6 +33,9 @@ Gemfile:
 	echo "# GitHub Pages" >$@.tmp
 	echo "source 'https://rubygems.org'" >>$@.tmp
 	echo "gem 'github-pages', group: :jekyll_plugins" >>$@.tmp
+	echo "group :jekyll_plugins do" >>$@.tmp
+	echo "  gem 'jekyll-asciidoc'" >>$@.tmp
+	echo "end" >>$@.tmp
 	cat $@.tmp >>$@
 	rm -f $@.tmp
 
