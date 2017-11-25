@@ -32,3 +32,10 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/mpkgtest
 	rm -Rf $(DESTDIR)$(PREFIX)/share/mpkgtest/
 
+.PHONY: clean
+clean:
+	-for testfile in */Testfile; do \
+		dir=$${testfile%/*}; \
+		rm -f $$dir/{true,false,*.sh}; \
+	done
+
