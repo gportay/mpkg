@@ -22,7 +22,7 @@ check-remove-list-installed: $(O)remove-list-installed.out mpkg-remove
 .PHONY: check-remove-list-outdated
 check-remove-list-outdated: $(O)remove-list-outdated.out mpkg-remove
 	echo -n "Checking list-outdated after remove... "
-	mpkg $(MPKGOPTS) $(MPKGOPTS_list-outdated) $(EXTRA_MPKGOPTS) list-outdated | \
+	bash mpkg $(MPKGOPTS) $(MPKGOPTS_list-outdated) $(EXTRA_MPKGOPTS) list-outdated | \
 	sed -n -e '/^\(Package\|Version\)/p' \
 	       -e '/^$$/p' | \
 	diff - $<
