@@ -115,7 +115,7 @@ limited to the concerned package and not the whole database.
 
 ## CLI API
 
-*mPKG* provides the 3 main operations of a classical *package manager*:
+*mPKG* provides the *3* main operations of a classical *package manager*:
 
 1. `install`
 1. `remove`
