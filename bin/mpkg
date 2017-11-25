@@ -840,7 +840,7 @@ do_configure() {
 }
 
 do_upgrade() {
-	for pkg in $*; do
+	for pkg in "$@"; do
 		abort=false
 		if ! pkg_status "$pkg" >/dev/null; then
 			verbose "$pkg: Package not installed!"
