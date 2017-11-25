@@ -32,6 +32,10 @@ remove-y		?= $(install-y)
 MPKGEXIT_remove		?= false
 MPKGARGS_remove		 = $(remove-y)
 
+upgrade-y		?=
+MPKGEXIT_upgrade	?= false
+MPKGARGS_upgrade	 = $(upgrade-y)
+
 .PHONY: FORCE
 FORCE:
 
@@ -56,7 +60,7 @@ mpkg_rootfs: $(repo-y) FORCE | $(ROOTDIR)
 	echo
 endif
 
-.SILENT: mpkg-install mpkg-remove
+.SILENT: mpkg-install mpkg-remove mpkg-upgrade
 mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
 	if ! bash mpkg $(MPKGOPTS) $(MPKGOPTS_$*) $(EXTRA_MPKGOPTS) $* $(MPKGARGS_$*) \
 	   && ! $(MPKGEXIT_$*); then \

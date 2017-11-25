@@ -19,6 +19,16 @@ check-install-list-installed: $(O)install-list-installed.out mpkg-install
 	echo "done"
 	echo
 
+.PHONY: check-install-list-outdated
+check-install-list-outdated: $(O)install-list-outdated.out mpkg-install
+	echo -n "Checking list-outdated after install... "
+	mpkg $(MPKGOPTS) $(MPKGOPTS_list-outdated) $(EXTRA_MPKGOPTS) list-outdated | \
+	sed -n -e '/^\(Package\|Version\)/p' \
+	       -e '/^$$/p' | \
+	diff - $<
+	echo "done"
+	echo
+
 .PHONY: check-install-files
 check-install-files: $(O)install-files.out
 	echo -n "Checking files after install... "

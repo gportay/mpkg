@@ -86,7 +86,7 @@ pkg_remove_metadata() {
 }
 
 pkg_remove_data() {
-	cat "$ROOT$PREFIX/info/$1/files" 2>/dev/null | while read f; do
+	comm -2 "$1" "${2:-/dev/null}" 2>/dev/null | while read f; do
 		rm -f "$ROOT$f"
 	done
 }
@@ -409,8 +409,11 @@ pkg_configure() {
 pkg_install() {
 	local pkg
 	local ver
+	local oldver
+	local arg
 	pkg=$1
 	ver=$2
+	arg="install"
 	if ! ${REDO:-false} && pkg_status "$pkg" "$ver" >/dev/null; then
 		if [ -n "${requiredby##* }" ]; then
 			ln -sf "../../$pkg" "$ROOT$PREFIX/info/$pkg/required-by/${requiredby##* }"
@@ -418,7 +421,20 @@ pkg_install() {
 		return
 	fi
 
-	debug "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+	# Upgrading package
+	if [ -d "$ROOT$PREFIX/info/$pkg/" ]; then
+		arg="upgrade"
+		oldver="$(cat "$ROOT$PREFIX/info/$pkg/control" | get_value 'Version')"
+		debug "$pkg: Upgrading package from $oldver to $ver${requiredby:+ required by$requiredby}..."
+
+		# Run prerm script if exists
+		if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" prerm "$arg" "$ver"; then
+			error "$pkg: Failed to run prerm!"
+			return 1
+		fi
+	else
+		debug "$pkg: Installing package${requiredby:+ required by$requiredby}..."
+	fi
 
 	# Fetching package
 	debug "$pkg: Fetching package..."
@@ -435,7 +451,7 @@ pkg_install() {
 	install -d "$tmpdir$PREFIX/info/$pkg/required-by/"
 
 	# Run preinst script if exists
-	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst install; then
+	if ! pkg_run_script "$tmpdir$PREFIX/info/$pkg" preinst "$arg" "$oldver"; then
 		error "$pkg: Failed to run preinst!"
 		return 1
 	fi
@@ -485,11 +501,60 @@ pkg_install() {
 		return 1
 	fi
 
+	# Upgrading package
+	if [ -d "$ROOT$PREFIX/info/$pkg/" ]; then
+		# Removing orphan dependencies
+		for dep in "$ROOT$PREFIX/info/$pkg/needs/"*; do
+			[ -L "$dep" ] || break
+
+			dep="${dep##*/}"
+			if [ -L "$tmpdir$PREFIX/info/$pkg/needs/$dep" ]; then
+				rm "$ROOT$PREFIX/info/$pkg/needs/$dep"
+				continue
+			fi
+
+			rm -f "$ROOT$PREFIX/info/$dep/required-by/$pkg"
+			if pkg_is_user_installed "$dep"; then
+				debug "Do not auto-remove user-installed package $dep! Keep going..."
+				continue
+			fi
+
+			if ! pkg_remove "$dep"; then
+				warning "Failed to remove package $dep! Keep going..."
+			fi
+
+			rm -f "$ROOT$PREFIX/info/$pkg/needs/$dep"
+		done
+
+		rmdir "$ROOT$PREFIX/info/$pkg/needs/"
+	fi
+
 	# Extract whole archive
 	debug "$pkg: Unarchiving package data..."
 	pkg_extract_data "$cachedir/$file" "${ROOT:-/}"
+
+	# Upgrading package
+	if [ -d "$ROOT$PREFIX/info/$pkg/" ]; then
+		# Run postrm script if exists
+		if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm "$arg" "$ver"; then
+			warning "$pkg: Failed to run postrm!"
+		fi
+
+		# Removing orphan files
+		pkg_remove_data "$ROOT$PREFIX/info/$pkg/files" "$tmpdir$PREFIX/info/$pkg/files"
+		mv "$ROOT$PREFIX/info/$pkg/" "$ROOT$PREFIX/info/.$pkg/"
+	fi
+
+	# Installing files
 	install -d "$ROOT$PREFIX/info/"
-	mv "$tmpdir$PREFIX/info/$pkg" "$ROOT$PREFIX/info/"
+	mv "$tmpdir$PREFIX/info/$pkg/" "$ROOT$PREFIX/info/"
+	if [ -d "$ROOT$PREFIX/info/.$pkg/" ]; then
+		for f in .user .configure .lock; do
+			[ -e "$ROOT$PREFIX/info/.$pkg/$f" ] || continue
+			mv -f "$ROOT$PREFIX/info/.$pkg/$f" "$ROOT$PREFIX/info/$pkg/"
+		done
+		rm -Rf "$ROOT$PREFIX/info/.$pkg/"
+	fi
 	rm "$cachedir/$file"*
 
 	# Run postinst script if exists,
@@ -560,7 +625,7 @@ pkg_remove() {
 
 	# Removing files
 	debug "$pkg: Removing package data..."
-	pkg_remove_data "$pkg"
+	pkg_remove_data "$ROOT$PREFIX/info/$pkg/files"
 
 	# Run postrm script if exists,
 	if ! pkg_run_script "$ROOT$PREFIX/info/$pkg" postrm remove; then
@@ -774,6 +839,28 @@ do_configure() {
 	done
 }
 
+do_upgrade() {
+	for pkg in $*; do
+		abort=false
+		if ! pkg_status "$pkg" >/dev/null; then
+			verbose "$pkg: Package not installed!"
+			continue
+		fi
+
+		if ! ver=$(pkg_is_outdated "$pkg"); then
+			verbose "$pkg: Package is up-to-date!"
+			continue
+		fi
+
+		debug "Upgrading package $pkg to $ver..."
+		requiredby=
+		if ! pkg_install "$pkg" "$ver"; then
+			die "Failed to upgrade $pkg!"
+		fi
+		debug "Package $pkg upgraded to $ver!"
+	done
+}
+
 usage() {
 	cat <<EOF
 Usage: ${0##*/} [OPTIONS] update
@@ -783,7 +870,7 @@ Usage: ${0##*/} [OPTIONS] update
        ${0##*/} [OPTIONS] status PACKAGE...
        ${0##*/} [OPTIONS] lock|unlock PACKAGE...
        ${0##*/} [OPTIONS] fetch PACKAGE...
-       ${0##*/} [OPTIONS] install|remove PACKAGE[_VERSION]...
+       ${0##*/} [OPTIONS] install|remove|upgrade PACKAGE[_VERSION]...
        ${0##*/} [OPTIONS] configure [PACKAGE...]
        ${0##*/} [OPTIONS] log
 
@@ -832,13 +919,13 @@ parse_arguments() {
 			echo $VERSION
 			exit 0
 		elif [ -z "$func" ]; then
-			if echo "$func" | grep -qE "update|list|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|configure|log"; then
+			if echo "$func" | grep -qE "update|list|list-installed|list-outdated|status|lock|unlock|fetch|install|remove|upgrade|configure|log"; then
 				usage >&2
 				echo  >&2
 				die "$1: Unknown function!"
 			fi
 			func="$1"
-		elif echo "$func" | grep -qE "lock|unlock|fetch|install|remove"; then
+		elif echo "$func" | grep -qE "lock|unlock|fetch|install|remove|upgrade"; then
 			args="$args $1"
 		elif [ -z "$args" ]; then
 			args="$args $1"
@@ -937,6 +1024,19 @@ remove)
 	fi
 
 	do_remove $args
+	;;
+upgrade)
+	if [ -z "$args" ]; then
+		usage >&2
+		echo  >&2
+		die "Too few arguments!"
+	fi
+
+	if $UPDATE; then
+		do_update
+	fi
+
+	do_upgrade $args
 	;;
 configure)
 	if [ -z "$args" ]; then
