@@ -173,8 +173,8 @@ This program is free software: you can redistribute it and/or modify it under
 the terms of the MIT License.
 
 [Busybox]: https://busybox.net/
-[target]: bin/mpkg
-[packages]: bin/mpkg-build
-[index]: bin/mpkg-make-index
+[target]: mpkg.1.adoc
+[packages]: mpkg-build.1.adoc
+[index]: mpkg-make-index.1.adoc
 [Debian policies]: https://www.debian.org/doc/debian-policy/index.html
 [mpkg]: bin/mpkg
