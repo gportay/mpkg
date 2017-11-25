@@ -56,6 +56,7 @@ github-pages:
 
 .PHONY: clean
 clean:
+	$(MAKE) -C tests $@
 	$(MAKE) -f sign.mk $@
 	$(MAKE) -f dist.mk $@
 	rm -rf tgz/
