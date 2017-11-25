@@ -14,7 +14,7 @@ all: tests
 .PHONY: $(SRC)
 .SILENT: $(SRC)
 $(SRC):
-	if ! bash maketest "-C$(@D)"; then \
+	if ! bash maketest "-C$(@D)" $(MFLAGS); then \
 		echo -e "\e[1m$(@D): \e[31m[KO]\e[0m"; \
 		false; \
 	else \
@@ -22,8 +22,7 @@ $(SRC):
 	fi
 
 .PHONY: tests
-tests:
-	bash run.sh $(MFLAGS)
+tests: $(SRC)
 
 .PHONY: install
 install:
