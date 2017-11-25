@@ -64,6 +64,20 @@ tests:
 github-pages:
 	$(MAKE) -f github-pages.mk
 
+.PHONY: doc
+doc: mpkg.1.gz mpkg-build.1.gz mpkg-deb2tgz.1.gz mpkg-make-index.1.gz
+
+.PHONY: install-doc
+install-doc:
+	install -d $(DESTDIR)$(mandir)/man1/
+	install -m 644 *.1.gz $(DESTDIR)$(mandir)/man1/
+
+%.1: %.1.adoc
+	asciidoctor -b manpage -o $@ $<
+
+%.gz: %
+	gzip -c $< >$@
+
 .PHONY: clean
 clean:
 	$(MAKE) -C tests $@

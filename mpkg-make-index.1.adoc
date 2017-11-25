@@ -1,0 +1,140 @@
+= mpkg-make-index(1)
+:doctype: manpage
+:author: Gaël PORTAY
+:email: gael.portay@gmail.com
+:lang: en
+:man manual: mPKG Manual
+:man source: mPKG 0.3
+
+== NAME
+
+mpkg-make-index - create index
+
+== SYNOPSIS
+
+*mpkg-make-index* [OPTIONS] [DIRECTORY=./]
+
+== DESCRIPTION
+
+*mpkg-make-index(1)* creates index to stdout.
+
+== OPTIONS
+
+*-h or --help*::
+	Display this message.
+
+*-V or --version*::
+	Display the version.
+
+== EXAMPLES
+
+Create 3 dummy packages using *mpkg-build(1)*.
+
+	$ mkdir -p dummy-0/var/lib/mpkg/info/dummy/
+	$ echo Package: dummy >dummy-0/var/lib/mpkg/info/dummy/control
+	$ mpkg-build dummy-0
+	dummy_0.tgz
+
+	$ mkdir -p dummy-1/var/lib/mpkg/info/dummy/
+	$ echo Package: dummy >dummy-1/var/lib/mpkg/info/dummy/control
+	$ echo Version: 1 >>dummy-1/var/lib/mpkg/info/dummy/control
+	$ mpkg-build dummy-1
+	dummy_1.tgz
+
+	$ mkdir -p meta-2016/var/lib/mpkg/info/meta/
+	$ echo Package: meta >meta-2016/var/lib/mpkg/info/meta/control
+	$ echo Version: 2016 >>meta-2016/var/lib/mpkg/info/meta/control
+	$ echo Depends: dummy >>meta-2016/var/lib/mpkg/info/meta/control
+	$ mpkg-build meta-2016
+	meta_2016.tgz
+
+Create an index for all generated packages from current directory to stdout.
+
+	$ mpkg-make-index
+	Package: dummy
+	Size: 255
+	MD5Sum: 8f43686634b6c56aa0456a7b7a2bbc2a
+	Filename: ./dummy_0.tgz
+
+	Package: dummy
+	Version: 1
+	Size: 267
+	MD5Sum: f15cbd144c3b49b5b6e1c71f07c18b1f
+	Filename: ./dummy_1.tgz
+
+	Package: meta
+	Version: 2016
+	Depends: dummy
+	Size: 283
+	MD5Sum: c1ddc8418e1b5867e3cdab435ac20097
+	Filename: ./meta_2016.tgz
+
+Redirect stdout to create an _Index_ file.
+
+	$ mpkg-make-index >Index
+
+Check for the _Index_ file.
+
+	$ cat Index 
+	Package: dummy
+	Size: 255
+	MD5Sum: 8f43686634b6c56aa0456a7b7a2bbc2a
+	Filename: ./dummy_0.tgz
+
+	Package: dummy
+	Version: 1
+	Size: 267
+	MD5Sum: f15cbd144c3b49b5b6e1c71f07c18b1f
+	Filename: ./dummy_1.tgz
+
+	Package: meta
+	Version: 2016
+	Depends: dummy
+	Size: 283
+	MD5Sum: c1ddc8418e1b5867e3cdab435ac20097
+	Filename: ./meta_2016.tgz
+
+It is also possible to create an _Index_ from the a sub-directory.
+
+	$ mkdir -p tgz/
+	$ mv dummy_0.tgz dummy_1.tgz meta_2016.tgz tgz/
+
+	$ mpkg-make-index ./tgz/ >Index
+
+	$ cat Index
+	Package: dummy
+	Size: 255
+	MD5Sum: 8f43686634b6c56aa0456a7b7a2bbc2a
+	Filename: ./tgz/dummy_0.tgz
+
+	Package: dummy
+	Version: 1
+	Size: 267
+	MD5Sum: f15cbd144c3b49b5b6e1c71f07c18b1f
+	Filename: ./tgz/dummy_1.tgz
+
+	Package: meta
+	Version: 2016
+	Depends: dummy
+	Size: 283
+	MD5Sum: c1ddc8418e1b5867e3cdab435ac20097
+	Filename: ./tgz/meta_2016.tgz
+
+== BUGS
+
+Report bugs at *https://github.com/gazoo74/mpkg/issues*
+
+== AUTHOR
+
+Written by Gaël PORTAY *gael.portay@gmail.com*
+
+== COPYRIGHT
+
+Copyright (c) 2015-2016 Gaël PORTAY
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the MIT License.
+
+== SEE ALSO
+
+*mpkg(1)*, *mpkg-build(1)*, *mpkg-deb2tgz(1)*
