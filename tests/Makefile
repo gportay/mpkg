@@ -9,6 +9,11 @@ PREFIX ?= /usr/local
 .PHONY: all
 all: tests
 
+SRC = $(wildcard */Testfile)
+.PHONY: $(SRC)
+$(SRC):
+	./maketest "-C$(@D)"
+
 .PHONY: tests
 tests:
 	./run.sh $(MFLAGS)
