@@ -8,7 +8,7 @@
 set -e
 
 PREFIX=/var/lib/mpkg
-VERSION=0.2.1
+VERSION=0.3.0
 UPDATE=false
 
 error() {

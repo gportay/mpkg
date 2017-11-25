@@ -8,7 +8,7 @@
 set -e
 
 PREFIX=/var/lib/mpkg
-VERSION=0.2.0
+VERSION=0.3.0
 
 die() {
 	echo "Error: $*" >&2
