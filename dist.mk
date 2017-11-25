@@ -12,7 +12,6 @@ clean:
 
 include dir.mk
 
-STATEDIR	 = $(localstatedir)/lib/mpkg
 pkg-m		:= mpkg mpkg-tools
 mpkg-vers	:= $(RELEASE)
 mpkg-dir	:= $(sysconfdir)/mpkg/repos.d $(localstatedir)/lib/mpkg/lists
