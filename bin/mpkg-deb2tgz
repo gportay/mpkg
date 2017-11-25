@@ -88,8 +88,7 @@ do_deb2tgz() {
 
 usage() {
 	cat <<EOF
-Usage: ${0##*/} [OPTIONS] PACKAGE...
-       ${0##*/} [OPTIONS] DIRECTORY...
+Usage: ${0##*/} [OPTIONS] DEBIAN...
 
 Options:
  --extract-only        Extract only.
