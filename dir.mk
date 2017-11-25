@@ -30,3 +30,6 @@ htmldir		?= $(datarootdir)
 dvidir		?= $(datarootdir)
 pdfdir		?= $(datarootdir)
 psdir		?= $(datarootdir)
+
+REPODIR		 = $(sysconfidir)/mpkg/repo.d
+LOCALSTATEDIR	 = $(localstatedir)/lib/mpkg
