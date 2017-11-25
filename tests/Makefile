@@ -5,11 +5,12 @@
 #
 
 PREFIX ?= /usr/local
+SRC	:= $(wildcard */Testfile)
+SRC	:= $(sort $(SRC))
 
 .PHONY: all
 all: tests
 
-SRC = $(wildcard */Testfile)
 .PHONY: $(SRC)
 $(SRC):
 	./maketest "-C$(@D)"
