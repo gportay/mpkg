@@ -488,8 +488,10 @@ pkg_install() {
 	# Extract whole archive
 	debug "$pkg: Unarchiving package data..."
 	pkg_extract_data "$cachedir/$file" "${ROOT:-/}"
+
+	# Installing files
 	install -d "$ROOT$PREFIX/info/"
-	mv "$tmpdir$PREFIX/info/$pkg" "$ROOT$PREFIX/info/"
+	mv "$tmpdir$PREFIX/info/$pkg/" "$ROOT$PREFIX/info/"
 	rm "$cachedir/$file"*
 
 	# Run postinst script if exists,
