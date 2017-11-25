@@ -5,6 +5,8 @@
 # Licensed under the MIT license.
 #
 
+include dir.mk
+
 VERSION		 = 0
 PATCHLEVEL	 = 1
 SUBLEVEL	 = 5
@@ -22,6 +24,13 @@ all:
 .PHONY: version
 version:
 	echo "$(RELEASE)"
+
+.PHONY: install
+install:
+	install -d $(DESTDIR)$(sbindir)/
+	install -m 644 bin/mpkg* $(DESTDIR)$(sbindir)/
+	install -d $(DESTDIR)$(REPODIR)/
+	install -d $(DESTDIR)$(LOCALSTATEDIR)/
 
 .PHONY: release
 release: export TGZDIR=tgz/
