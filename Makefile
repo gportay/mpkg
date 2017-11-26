@@ -58,7 +58,7 @@ check shellcheck:
 
 .PHONY: tests
 tests:
-	$(MAKE) -C tests --silent $(MFLAGS)
+	$(MAKE) -C tests --silent --keep-going --jobs $(MFLAGS)
 
 .PHONY: github-pages
 github-pages:
