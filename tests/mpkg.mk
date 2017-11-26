@@ -36,6 +36,11 @@ upgrade-y		?=
 MPKGEXIT_upgrade	?= false
 MPKGARGS_upgrade	 = $(upgrade-y)
 
+ifneq (,$(install-y))
+mpkg-upgrade: | mpkg-install
+mpkg-remove: | mpkg-install
+endif
+
 .PHONY: FORCE
 FORCE:
 
@@ -61,7 +66,7 @@ mpkg_rootfs: $(repo-y) FORCE | $(ROOTDIR)
 endif
 
 .SILENT: mpkg-install mpkg-remove mpkg-upgrade
-mpkg-%: $(repo-y) FORCE | $(ROOTDIR)
+mpkg-%: mpkg_rootfs
 	if ! bash mpkg $(MPKGOPTS) $(MPKGOPTS_$*) $(EXTRA_MPKGOPTS) $* $(MPKGARGS_$*) \
 	   && ! $(MPKGEXIT_$*); then \
 		echo "Error: command has failed $(MPKGEXIT_$*)!" >&2; \
