@@ -26,6 +26,10 @@ remove-y		?= $(install-y)
 MPKGEXIT_remove		?= false
 MPKGARGS_remove		 = $(remove-y)
 
+ifneq (,$(install-y))
+mpkg-remove: | mpkg-install
+endif
+
 .PHONY: FORCE
 FORCE:
 
@@ -51,7 +55,7 @@ mpkg_rootfs: $(ROOTDIR)/etc/mpkg/feeds.conf FORCE | $(ROOTDIR)
 endif
 
 .SILENT: mpkg-install mpkg-remove
-mpkg-%: $(ROOTDIR)/etc/mpkg/feeds.conf | $(ROOTDIR)
+mpkg-%: mpkg_rootfs
 	if ! bash mpkg $(MPKGOPTS) $(MPKGOPTS_$*) $(EXTRA_MPKGOPTS) $* $(MPKGARGS_$*) \
 	   && ! $(MPKGEXIT_$*); then \
 		echo "Error: command has failed $(MPKGEXIT_$*)!" >&2; \

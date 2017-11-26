@@ -36,8 +36,11 @@ $(ROOTDIR)/etc/mpkg/feeds.conf: $(TGZDIR)Index
 Testfile:
 	$(error No targets specified and no Testfile found)
 
+check: rootfs
+
 -include Testfile mpkg.mk
 
-all: rootfs check clean
+all: check
+	$(MAKE) -f$(firstword $(MAKEFILE_LIST)) clean
 	rmdir $(O)
 
