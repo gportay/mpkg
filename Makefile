@@ -9,7 +9,7 @@ include dir.mk
 
 VERSION		 = 0
 PATCHLEVEL	 = 2
-SUBLEVEL	 = 1
+SUBLEVEL	 = 2
 EXTRAVERSION	 = 
 NAME		 = I am not an Hero!
 RELEASE		 = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
