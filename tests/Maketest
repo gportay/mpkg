@@ -18,7 +18,7 @@ check:
 .PHONY: clean
 clean:
 
-PATH	:= $(PWD)/../bin:$(PATH)
+PATH	:= $(PWD)/..:$(PATH)
 O	?= $(shell echo "${TMPDIR:-/tmp}/mpkg-$$$$")
 ROOTDIR	 = $(O)root
 TGZDIR	 = $(O)tgz/

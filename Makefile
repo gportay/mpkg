@@ -28,7 +28,8 @@ version:
 .PHONY: install
 install:
 	install -d $(DESTDIR)$(sbindir)/
-	install -m 644 bin/mpkg* $(DESTDIR)$(sbindir)/
+	install -m 644 mpkg mpkg-build mpkg-make-index mpkg-deb2tgz \
+		$(DESTDIR)$(sbindir)/
 	install -d $(DESTDIR)$(REPODIR)/
 	install -d $(DESTDIR)$(LOCALSTATEDIR)/
 
@@ -52,8 +53,8 @@ verify:
 
 .PHONY: check shellcheck
 check shellcheck:
-	shellcheck bin/mpkg-build bin/mpkg-deb2tgz bin/mpkg-make-index
-	shellcheck bin/mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
+	shellcheck mpkg-build mpkg-deb2tgz mpkg-make-index
+	shellcheck mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
 	shellcheck mpkg.postinst
 
 .PHONY: tests

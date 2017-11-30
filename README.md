@@ -153,7 +153,7 @@ Download [mpkg] and copy it somewhere in your `$PATH`.
 
 	$ sudo su
 	# cd /usr/sbin
-	# wget https://raw.githubusercontent.com/gazoo74/mpkg/master/bin/mpkg
+	# wget https://raw.githubusercontent.com/gazoo74/mpkg/master/mpkg
 	# chmod +x mpkg
 
 *mPKG* needs at least a *repository feed* in `/etc/mpkg/repo.d/` directory.
@@ -177,4 +177,4 @@ the terms of the MIT License.
 [packages]: mpkg-build.1.adoc
 [index]: mpkg-make-index.1.adoc
 [Debian policies]: https://www.debian.org/doc/debian-policy/index.html
-[mpkg]: bin/mpkg
+[mpkg]: mpkg

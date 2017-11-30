@@ -5,7 +5,7 @@
 #
 
 RELEASE		?= 1
-PATH		:= $(CURDIR)/bin:$(PATH)
+PATH		:= $(CURDIR):$(PATH)
 sysconfdir	:= /etc
 localstatedir	:= /var
 
