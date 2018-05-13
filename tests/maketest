@@ -9,12 +9,12 @@ set -e
 
 DATADIR="${DATADIR:-$PWD}"
 
-tmpdir="$(mktemp -d ${TMPDIR:-/tmp}/${0##*/}-XXXXXX)"
+tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/${0##*/}-XXXXXX")"
 trap 'rm -Rf "$tmpdir"' 0
 
 maketest_flags=( "O=$tmpdir/" "-I$DATADIR" "-f$DATADIR/Maketest" "--no-print-directory" )
 MAKETEST="$0"
-MTFLAGS="${maketest_flags[@]}"
+MTFLAGS="${maketest_flags[*]}"
 export MAKETEST MTFLAGS
 export DATADIR
 
