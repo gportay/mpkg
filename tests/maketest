@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2017 Gaël PORTAY <gael.portay@gmail.com>
+# Copyright 2017-2018 Gaël PORTAY <gael.portay@gmail.com>
 #
 # Licensed under the MIT license.
 #
@@ -18,4 +18,4 @@ MTFLAGS="${maketest_flags[@]}"
 export MAKETEST MTFLAGS
 export DATADIR
 
-make "${maketest_flags[@]}" "$@"
+exec make "${maketest_flags[@]}" "$@"
