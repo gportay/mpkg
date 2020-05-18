@@ -926,9 +926,9 @@ parse_arguments() {
 			fi
 			func="$1"
 		elif echo "$func" | grep -qE "lock|unlock|fetch|install|remove|upgrade"; then
-			args="$args $1"
+			args="$args \"$1\""
 		elif [ -z "$args" ]; then
-			args="$args $1"
+			args="$args \"$1\""
 		else
 			usage >&2
 			echo  >&2

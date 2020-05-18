@@ -54,7 +54,8 @@ verify:
 .PHONY: check shellcheck
 check shellcheck:
 	shellcheck mpkg-build mpkg-deb2tgz mpkg-make-index
-	shellcheck mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
+	shellcheck mpkg -e SC2039
+	#shellcheck mpkg -s bash -e SC2162 -e SC2001 -e SC2002 -e SC2086
 	shellcheck support/postinst
 
 .PHONY: tests
